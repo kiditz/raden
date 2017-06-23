@@ -1,0 +1,3 @@
+# Harusnya diset sebagai environment variabel ENCRYPT_KEY
+# encrypt:
+#    key: inisymmetrickeyrahasiasekali
