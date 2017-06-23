@@ -6,11 +6,13 @@ import java.io.IOException;
 import java.util.List;
 import java.util.function.Predicate;
 
+import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.source.FieldSource;
 import org.jboss.forge.roaster.model.source.JavaClassSource;
+import org.jboss.forge.roaster.model.source.JavaInterfaceSource;
 import org.jboss.forge.roaster.model.source.PropertySource;
 import org.jboss.forge.roaster.model.util.Strings;
 import org.slerp.connection.JdbcConnection;
@@ -24,10 +26,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class EntityGenerator implements Generator {
 	public String packageName;
+	public String packageRepoName;
 	public String srcDir;
 	JdbcConnection connection;
 
-	public EntityGenerator(String settingPath, String packageName, String srcDir) {
+	public EntityGenerator(String settingPath, String packageName, String packageRepoName, String srcDir) {
 		this.connection = new JdbcConnection(settingPath);
 		this.packageName = packageName;
 		this.srcDir = srcDir;
@@ -35,19 +38,28 @@ public class EntityGenerator implements Generator {
 			throw new CoreException(packageName + " cannot be null null");
 		if (srcDir == null)
 			throw new CoreException(srcDir + " cannot be null null");
+		if (packageRepoName == null)
+			this.packageRepoName = packageName.substring(0, packageName.lastIndexOf('.')).concat(".repo");
+		else
+			this.packageRepoName = packageRepoName;
 	}
 
 	@Override
-	public String generate(JdbcTable table) {
-		table = connection.getTable(table.getTableName());
-		String source = generateData(table);
+	public void generate(String tableName) {
+		JdbcTable table = connection.getTable(tableName);
+
+		String source = generateEntity(table);
+
 		File src = new File(srcDir, packageName.replace(".", "/").concat("/"));
+
 		if (!src.isDirectory())
 			src.mkdirs();
+
 		File fileToWrite = new File(src,
 				StringConverter.convertCaseSensitive(table.getTableName(), true).concat(".java"));
 		FileWriter writer;
 		try {
+
 			writer = new FileWriter(fileToWrite);
 			writer.write(source);
 			writer.close();
@@ -55,13 +67,27 @@ public class EntityGenerator implements Generator {
 			writer = new FileWriter(fileToWrite);
 			writer.write(source);
 			writer.close();
+			String repository = generateRepository(table);
+			File srcRepo = new File(srcDir, packageRepoName.replace(".", "/").concat("/"));
+			if (!srcRepo.isDirectory())
+				srcRepo.mkdirs();
+
+			fileToWrite = new File(srcRepo,
+					StringConverter.convertCaseSensitive(table.getTableName(), true) + "Repository".concat(".java"));
+			writer = new FileWriter(fileToWrite);
+			writer.write(repository);
+			writer.close();
 		} catch (IOException e) {
 			e.printStackTrace();
+			System.out.println("Generator failed to create " + StringConverter.getFilename(fileToWrite));
+			return;
 		}
-		return source;
+		System.out.println("Generator successfully create " + StringConverter.getFilename(fileToWrite));
+		// System.out.println("At " + fileToWrite.getAbsolutePath());
+
 	}
 
-	private String generateData(JdbcTable table) {
+	private String generateEntity(JdbcTable table) {
 		JavaClassSource cls = Roaster.create(JavaClassSource.class);
 		cls.setName(StringConverter.convertCaseSensitive(table.getTableName(), true)).setPublic();
 		cls.setPackage(packageName);
@@ -73,6 +99,9 @@ public class EntityGenerator implements Generator {
 				.setLiteralValue("getterVisibility", "JsonAutoDetect.Visibility.NONE")
 				.setLiteralValue("isGetterVisibility", "JsonAutoDetect.Visibility.NONE")
 				.setLiteralValue("setterVisibility", "JsonAutoDetect.Visibility.NONE");
+		cls.addAnnotation(XmlAccessorType.class).setLiteralValue("XmlAccessType.NONE");
+		cls.addImport(XmlAccessType.class);
+
 		List<JdbcColumn> columns = table.getColumns();
 		JavaClassSource pkCls = null;
 		if (table.getPrimaryKeyCount() > 1) {
@@ -198,12 +227,9 @@ public class EntityGenerator implements Generator {
 							fkField);
 					property.getAccessor().addAnnotation(JsonProperty.class);
 					FieldSource<JavaClassSource> field = property.getField();
-					// @JoinColumn(name = "category_id", referencedColumnName =
-					// "id")
 					field.addAnnotation("javax.persistence.ManyToOne").setLiteralValue("optional", "false");
 					field.addAnnotation("javax.persistence.JoinColumn").setStringValue("name", fkColumnName)
-							.setStringValue("referencedColumnName",
-									StringConverter.convertCaseSensitive(pkColumnName, false));
+							.setStringValue("referencedColumnName", pkColumnName);
 					try {
 						JavaClassSource refCls = Roaster.parse(JavaClassSource.class, referenceFile);
 						String className = packageName.concat(".")
@@ -217,6 +243,7 @@ public class EntityGenerator implements Generator {
 						FileWriter writer = new FileWriter(referenceFile);
 						writer.write(refCls.toString());
 						writer.close();
+
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -227,10 +254,33 @@ public class EntityGenerator implements Generator {
 		return cls.toString();
 	}
 
-	public static void main(String[] args) {
-		EntityGenerator generator = new EntityGenerator("src/main/resources/slerp.properties", "com.slerp.entity",
-				"../slerp-base/src/main/java");
-		generator.generate(new JdbcTable("category"));
-		generator.generate(new JdbcTable("product"));
+	private String generateRepository(JdbcTable table) {
+		table = connection.getTable(table.getTableName());
+		String className = StringConverter.convertCaseSensitive(table.getTableName(), true);
+		JavaInterfaceSource iCls = Roaster.create(JavaInterfaceSource.class);
+		iCls.addImport(packageName.concat(".").concat(className));
+		Class<?> primaryKeyDataType = TypeConverter.convert(getColumnByPK(table.getColumns()).getColumnType());
+		iCls.setPackage(packageRepoName).setName(className.concat("Repository")).setPublic();
+		iCls.addInterface("org.springframework.data.jpa.repository.JpaRepository<"
+				+ packageName.concat(".").concat(className) + ", " + primaryKeyDataType.getName() + ">");
+
+		return iCls.toString();
 	}
+
+	public JdbcColumn getColumnByPK(List<JdbcColumn> columns) {
+		for (JdbcColumn column : columns) {
+			if (column.isPrimaryKey())
+				return column;
+		}
+		return null;
+	}
+
+	public static void main(String[] args) {
+		EntityGenerator generator = new EntityGenerator("src/main/resources/slerp.properties",
+				"org.slerp.ecomerce.entity", null, "/home/kiditz/apps/framework/slerp-ecomerce/src/main/java");
+
+		generator.generate("product");
+		generator.generate("category");
+	}
+
 }

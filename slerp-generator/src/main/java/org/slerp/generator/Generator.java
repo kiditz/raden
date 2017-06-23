@@ -4,10 +4,9 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.slerp.core.CoreException;
-import org.slerp.model.JdbcTable;
 
 public interface Generator {
-	public String generate(JdbcTable table);
+	public void generate(String tableName);
 
 	static public class TypeConverter {
 		static Properties properties = new Properties();

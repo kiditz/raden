@@ -30,4 +30,13 @@ public class StringConverter {
 			return nama.substring(dot + 1);
 		}
 	}
+	public static String getFilename(File file) {
+		String nama = file.getName();
+		int dot = nama.lastIndexOf('.');
+		if (dot == -1) {
+			return file.getName();
+		} else {
+			return nama.substring(0, dot);
+		}
+	}	
 }
