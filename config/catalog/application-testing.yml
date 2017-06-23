@@ -1,8 +1,0 @@
-nama: Test User
-
-spring:
-    datasource:
-        driverClassName: 'org.postgresql.Driver'
-        url: 'jdbc:postgresql://localhost:5432/kiditz-test'
-        username: 'postgres'
-        password: 'rioters7'
