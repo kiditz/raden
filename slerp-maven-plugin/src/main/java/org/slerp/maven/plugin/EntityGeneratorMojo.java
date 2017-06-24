@@ -27,7 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 @Mojo(name = "entity-generator", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
-public class GeneratorMojo extends AbstractMojo {
+public class EntityGeneratorMojo extends AbstractMojo {
 	@Parameter(defaultValue = "${project.basedir}/src/main/resources/application.properties", property = "properties", required = true)
 	private File properties;
 	@Parameter(defaultValue = "${project.basedir}/src/main/java", property = "srcDir", required = true)
