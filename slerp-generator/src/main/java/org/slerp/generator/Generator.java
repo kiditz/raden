@@ -1,6 +1,5 @@
 package org.slerp.generator;
 
-import java.io.IOException;
 import java.util.Properties;
 
 import org.slerp.core.CoreException;
@@ -10,10 +9,28 @@ public interface Generator {
 
 	static public class TypeConverter {
 		static Properties properties = new Properties();
+
 		static {
 			try {
-				properties.load(Generator.class.getResourceAsStream("/org/slerp/utils/datatype.properties"));
-			} catch (IOException e) {
+				properties.put("varchar", "java.lang.String");
+				properties.put("bpchar", "java.lang.String");
+				properties.put("text", "java.lang.String");
+				properties.put("bytea", "[B");
+
+				properties.put("int8", "java.lang.Long");
+				properties.put("bigserial", "java.lang.Long");
+
+				properties.put("int4", "java.lang.Integer");
+				properties.put("int2", "java.lang.Short");
+				properties.put("numeric", "java.math.BigDecimal");
+				properties.put("float4", "java.lang.Float");
+				properties.put("float8", "java.lang.Double");
+				properties.put("timestamp", "java.util.Date");
+				properties.put("timestamptz", "java.util.Date");
+				properties.put("date", "java.util.Date");
+				properties.put("time", "java.util.Date");
+				properties.put("boolean", "java.lang.Boolean");
+			} catch (Exception e) {
 				throw new CoreException(e);
 			}
 		}

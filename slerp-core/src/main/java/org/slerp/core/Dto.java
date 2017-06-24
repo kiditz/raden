@@ -98,7 +98,7 @@ public class Dto implements Map<Object, Object> {
 	}
 
 	public String getString(Object key) {
-		return map.get(key).toString();
+		return (String) map.get(key);
 	}
 
 	public Object putIfAbsent(Object key, Object value) {

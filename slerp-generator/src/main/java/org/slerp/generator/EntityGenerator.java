@@ -28,9 +28,8 @@ public class EntityGenerator implements Generator {
 	public String packageName;
 	public String packageRepoName;
 	public String srcDir;
-	JdbcConnection connection;
-	public EntityGenerator() {	
-	}
+	private JdbcConnection connection;
+
 	public EntityGenerator(String settingPath, String packageName, String packageRepoName, String srcDir) {
 		this.connection = new JdbcConnection(settingPath);
 		this.packageName = packageName;
@@ -62,6 +61,7 @@ public class EntityGenerator implements Generator {
 		try {
 
 			writer = new FileWriter(fileToWrite);
+			System.out.println("Generator successfully create " + StringConverter.getFilename(fileToWrite));
 			writer.write(source);
 			writer.close();
 			source = generateJoin(table.getColumns(), source);
@@ -89,6 +89,7 @@ public class EntityGenerator implements Generator {
 	}
 
 	private String generateEntity(JdbcTable table) {
+		
 		JavaClassSource cls = Roaster.create(JavaClassSource.class);
 		cls.setName(StringConverter.convertCaseSensitive(table.getTableName(), true)).setPublic();
 		cls.setPackage(packageName);
@@ -103,7 +104,7 @@ public class EntityGenerator implements Generator {
 		cls.addAnnotation(XmlAccessorType.class).setLiteralValue("XmlAccessType.NONE");
 		cls.addImport(XmlAccessType.class);
 
-		List<JdbcColumn> columns = table.getColumns();
+		List<JdbcColumn> columns = table.getColumns();		
 		JavaClassSource pkCls = null;
 		if (table.getPrimaryKeyCount() > 1) {
 			pkCls = Roaster.create(JavaClassSource.class);
@@ -274,6 +275,10 @@ public class EntityGenerator implements Generator {
 				return column;
 		}
 		return null;
+	}
+
+	public JdbcConnection getConnection() {
+		return connection;
 	}
 
 	public static void main(String[] args) {
