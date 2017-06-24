@@ -29,7 +29,8 @@ public class EntityGenerator implements Generator {
 	public String packageRepoName;
 	public String srcDir;
 	JdbcConnection connection;
-
+	public EntityGenerator() {	
+	}
 	public EntityGenerator(String settingPath, String packageName, String packageRepoName, String srcDir) {
 		this.connection = new JdbcConnection(settingPath);
 		this.packageName = packageName;
