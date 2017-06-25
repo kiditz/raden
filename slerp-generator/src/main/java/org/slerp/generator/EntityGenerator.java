@@ -136,9 +136,9 @@ public class EntityGenerator implements Generator {
 						field.addAnnotation("javax.persistence.Basic").setLiteralValue("optional", "false");
 					}
 					if (column.getColumnSize() < 100) {
-						field.addAnnotation("javax.persistence.Size").setLiteralValue("min", "1").setLiteralValue("max",
-								String.valueOf(column.getColumnSize()));
-					}					
+						field.addAnnotation("javax.validation.constraints.Size").setLiteralValue("min", "1")
+								.setLiteralValue("max", String.valueOf(column.getColumnSize()));
+					}
 				}
 			} else {
 				if (column.isPrimaryKey()) {
@@ -157,7 +157,7 @@ public class EntityGenerator implements Generator {
 						field.addAnnotation("javax.persistence.SequenceGenerator")
 								.setStringValue("name", column.getSequenceName().toUpperCase())
 								.setStringValue("sequenceName", column.getSequenceName())
-								.setLiteralValue("initialValue", "1");
+								.setLiteralValue("initialValue", "1").setLiteralValue("allocationSize", "1");
 						// System.err.println(column.getColumnName() + ":" +
 						// column.getColumnSize());
 						if (column.getColumnSize() < 100) {
@@ -207,10 +207,10 @@ public class EntityGenerator implements Generator {
 					|| column.getColumnType().equalsIgnoreCase("timestamptz")) {
 				field.addAnnotation("javax.persistence.Temporal").setLiteralValue("TemporalType.TIMESTAMP");
 				cls.addImport("javax.persistence.TemporalType");
-			}else if(column.getColumnType().equalsIgnoreCase("date")){
+			} else if (column.getColumnType().equalsIgnoreCase("date")) {
 				field.addAnnotation("javax.persistence.Temporal").setLiteralValue("TemporalType.DATE");
 				pkCls.addImport("javax.persistence.TemporalType");
-			}else if(column.getColumnType().equalsIgnoreCase("time")){
+			} else if (column.getColumnType().equalsIgnoreCase("time")) {
 				field.addAnnotation("javax.persistence.Temporal").setLiteralValue("TemporalType.TIME");
 				cls.addImport("javax.persistence.TemporalType");
 			}
@@ -299,5 +299,4 @@ public class EntityGenerator implements Generator {
 		generator.generate("product");
 		generator.generate("category");
 	}
-
 }

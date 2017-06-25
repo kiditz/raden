@@ -69,24 +69,28 @@ public class Dto implements Map<Object, Object> {
 		return map.get(key);
 	}
 
+	public Boolean getBoolean(Object key) {
+		return (Boolean) get(key);
+	}
+
 	public Long getLong(Object key) {
-		return Long.valueOf(map.get(key).toString());
+		return Long.valueOf(getString(key));
 	}
 
 	public Integer getInt(Object key) {
-		return Integer.valueOf(map.get(key).toString());
+		return Integer.valueOf(getString(key));
 	}
 
 	public Short getShort(Object key) {
-		return Short.valueOf(map.get(key).toString());
+		return Short.valueOf(getString(key));
 	}
 
 	public Double getDouble(Object key) {
-		return Double.valueOf(map.get(key).toString());
+		return Double.valueOf(getString(key));
 	}
 
 	public Float getFloat(Object key) {
-		return Float.valueOf(map.get(key).toString());
+		return Float.valueOf(getString(key));
 	}
 
 	public BigInteger getBigInt(Object key) {
@@ -159,7 +163,7 @@ public class Dto implements Map<Object, Object> {
 		}
 	}
 
-	public <T> T convertTo(Class<T> classToSerialize) throws Throwable {
+	public <T> T convertTo(Class<T> classToSerialize) throws Exception {
 		return jsonMapper.readValue(toString(), classToSerialize);
 	}
 

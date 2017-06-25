@@ -45,6 +45,7 @@
 			<artifactId>roaster-api</artifactId>
 			<version>${version.roaster}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.jboss.forge.roaster</groupId>
 			<artifactId>roaster-jdt</artifactId>
@@ -54,7 +55,11 @@
 		<dependency>
 			<groupId>org.slerp</groupId>
 			<artifactId>slerp-core</artifactId>
-		</dependency>		
+		</dependency>
+		<dependency>
+			<groupId>org.slerp</groupId>
+			<artifactId>slerp-base</artifactId>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
