@@ -89,7 +89,7 @@ public class EntityGenerator implements Generator {
 	}
 
 	private String generateEntity(JdbcTable table) {
-		
+
 		JavaClassSource cls = Roaster.create(JavaClassSource.class);
 		cls.setName(StringConverter.convertCaseSensitive(table.getTableName(), true)).setPublic();
 		cls.setPackage(packageName);
@@ -104,7 +104,7 @@ public class EntityGenerator implements Generator {
 		cls.addAnnotation(XmlAccessorType.class).setLiteralValue("XmlAccessType.NONE");
 		cls.addImport(XmlAccessType.class);
 
-		List<JdbcColumn> columns = table.getColumns();		
+		List<JdbcColumn> columns = table.getColumns();
 		JavaClassSource pkCls = null;
 		if (table.getPrimaryKeyCount() > 1) {
 			pkCls = Roaster.create(JavaClassSource.class);
@@ -138,7 +138,7 @@ public class EntityGenerator implements Generator {
 					if (column.getColumnSize() < 100) {
 						field.addAnnotation("javax.persistence.Size").setLiteralValue("min", "1").setLiteralValue("max",
 								String.valueOf(column.getColumnSize()));
-					}
+					}					
 				}
 			} else {
 				if (column.isPrimaryKey()) {
@@ -202,6 +202,17 @@ public class EntityGenerator implements Generator {
 			if (column.getColumnSize() < 100) {
 				field.addAnnotation("javax.validation.constraints.Size").setLiteralValue("min", "1")
 						.setLiteralValue("max", String.valueOf(column.getColumnSize()));
+			}
+			if (column.getColumnType().equalsIgnoreCase("timestamp")
+					|| column.getColumnType().equalsIgnoreCase("timestamptz")) {
+				field.addAnnotation("javax.persistence.Temporal").setLiteralValue("TemporalType.TIMESTAMP");
+				cls.addImport("javax.persistence.TemporalType");
+			}else if(column.getColumnType().equalsIgnoreCase("date")){
+				field.addAnnotation("javax.persistence.Temporal").setLiteralValue("TemporalType.DATE");
+				pkCls.addImport("javax.persistence.TemporalType");
+			}else if(column.getColumnType().equalsIgnoreCase("time")){
+				field.addAnnotation("javax.persistence.Temporal").setLiteralValue("TemporalType.TIME");
+				cls.addImport("javax.persistence.TemporalType");
 			}
 		}
 		return cls.toString();
