@@ -1,6 +1,7 @@
 package org.slerp.generator;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,7 @@ import org.slerp.utils.EntityUtils;
 public class TransactionGenerator implements Generator {
 	private String packageName;
 	private File baseDir;
-	private boolean enableJoin;
+	private boolean enableValidator;
 
 	private static enum TransactionMode {
 		Add, Edit, Remove
@@ -26,8 +27,8 @@ public class TransactionGenerator implements Generator {
 
 	TransactionMode mode = null;
 
-	public TransactionGenerator(String mode, String packageName, File baseDir, boolean enableJoin) {
-		this.enableJoin = enableJoin;
+	public TransactionGenerator(String mode, String packageName, File baseDir, boolean enableValidator) {
+		this.enableValidator = enableValidator;
 		this.packageName = packageName;
 		Assert.notNull(packageName, "Package Name should be filled");
 		this.baseDir = baseDir;
@@ -56,7 +57,7 @@ public class TransactionGenerator implements Generator {
 	}
 
 	private void createBusinessTransaction(Dto classDto, File entityFile) throws IOException {
-		System.out.println(classDto);
+		// System.out.println(classDto);
 		JavaClassSource cls = Roaster.create(JavaClassSource.class);
 		cls.setName(mode.name().concat(classDto.getString("className"))).setPackage(packageName).setPublic();
 		cls.addField().setName(Strings.uncapitalize(classDto.getString("className") + "Repository"))
@@ -64,6 +65,9 @@ public class TransactionGenerator implements Generator {
 				.addAnnotation("org.springframework.beans.factory.annotation.Autowired");
 		cls.addImport(classDto.getString("packageName").replace("entity", "repo").concat(".")
 				.concat(classDto.getString("className")) + "Repository");
+		cls.addImport(Dto.class);
+		cls.addImport(classDto.getString("packageName").concat(".").concat(classDto.getString("className")));
+		cls.addImport(CoreException.class);
 		List<String> keyValues = new ArrayList<>();
 		List<String> notNullValues = new ArrayList<>();
 		List<String> numberValues = new ArrayList<>();
@@ -88,9 +92,9 @@ public class TransactionGenerator implements Generator {
 				if (!field.getBoolean("isJoin") && !field.getBoolean("isNull")) {
 					notNullValues.add(fieldName);
 				}
-				if (enableJoin)
-					if (field.getBoolean("isJoin")) {
+				if (enableValidator)
 
+					if (field.getBoolean("isJoin")) {
 						String simpleField = field.getString("fieldType").substring(
 								field.getString("fieldType").lastIndexOf('.') + 1,
 								field.getString("fieldType").length());
@@ -110,18 +114,77 @@ public class TransactionGenerator implements Generator {
 						prepareBody.append("}");
 						prepareBody
 								.append(uncapClassName + "Dto.put(\"" + fieldName + "\", new Dto(" + fieldName + "));");
+
 						cls.addField().setName(repoName).setType(simpleField + "Repository")
 								.addAnnotation("org.springframework.beans.factory.annotation.Autowired");
 						cls.addImport(classDto.getString("packageName").replace("entity", "repo").concat(".")
 								.concat(simpleField) + "Repository");
+						cls.addImport(classDto.getString("packageName").concat(".").concat(simpleField));
 					}
 				if (field.getBoolean("isNumber")) {
 					numberValues.add(fieldName);
 				}
+			} else if (mode == TransactionMode.Edit) {
+				if (field.getBoolean("isForeignKey"))
+					continue;
+				// if (field.getBoolean("isPrimaryKey")) {
+				// continue;
+				// }
+
+				keyValues.add(fieldName);
+				if (!field.getBoolean("isJoin") && !field.getBoolean("isNull")) {
+					notNullValues.add(fieldName);
+				}
+				if (enableValidator) {
+					if (field.getBoolean("isJoin")) {
+						String simpleField = field.getString("fieldType").substring(
+								field.getString("fieldType").lastIndexOf('.') + 1,
+								field.getString("fieldType").length());
+						String repoName = Strings.uncapitalize(simpleField + "Repository");
+						file = file.replace(classDto.getString("className"), simpleField);
+						Dto referenceDto = EntityUtils.readEntityAsDto(new File(file));
+						String primaryKeyRef = getPrimaryKeyRef(referenceDto.getList("fields")); //
+						prepareBody.append("Dto " + Strings.uncapitalize(simpleField) + "Dto = " + uncapClassName
+								+ "Dto.getDto(\"" + fieldName + "\");\n");
+						prepareBody.append(simpleField + " " + fieldName + " = " + Strings.uncapitalize(simpleField)
+								+ "Dto" + ".convertTo(" + simpleField + ".class);\n");
+						prepareBody.append(fieldName + " = " + repoName + ".findOne(" + fieldName + ".get"
+								+ Strings.capitalize(primaryKeyRef) + "());");
+						prepareBody.append("if (" + fieldName + " == null){");
+						prepareBody.append("throw new CoreException(" + simpleField + ".class.getName() + \"."
+								+ fieldName + "\");");
+						prepareBody.append("}");
+						prepareBody
+								.append(uncapClassName + "Dto.put(\"" + fieldName + "\", new Dto(" + fieldName + "));");
+
+						prepareBody.append("\n");
+
+						cls.addField().setName(repoName).setType(simpleField + "Repository")
+								.addAnnotation("org.springframework.beans.factory.annotation.Autowired");
+						cls.addImport(classDto.getString("packageName").replace("entity", "repo").concat(".")
+								.concat(simpleField) + "Repository");
+						cls.addImport(classDto.getString("packageName").concat(".").concat(simpleField));
+					}
+				}
+				if (field.getBoolean("isNumber")) {
+					numberValues.add(fieldName);
+				}
+
 			}
+
 			if (fieldName.contains("email")) {
 				emailValues.add(fieldName);
 			}
+		}
+		if (enableValidator) {
+			prepareBody.append(className + " " + uncapClassName + " = " + uncapClassName + "Dto.convertTo(" + className
+					+ ".class);");
+			String pkField = getPrimaryKeyRef(fields);
+			prepareBody.append(uncapClassName + " = " + uncapClassName + "Repository.findOne(" + uncapClassName + ".get"
+					+ Strings.capitalize(pkField) + "());");
+			prepareBody.append("if (product == null) {");
+			prepareBody.append("throw new CoreException(" + className + ".class.getName() + \"." + pkField + "\");");
+			prepareBody.append("}");
 		}
 		// Create handle body
 		handleBody.append("super.handle(" + Strings.uncapitalize(classDto.getString("className")).concat("Dto") + ");");
@@ -136,7 +199,7 @@ public class TransactionGenerator implements Generator {
 		handleBody.append("}");
 
 		// Generate Method
-		MethodSource<JavaClassSource> prepareMethod = cls.addMethod("prepare()").setReturnType(Dto.class).setPublic();
+		MethodSource<JavaClassSource> prepareMethod = cls.addMethod("prepare()").setPublic();
 		prepareMethod.addThrows(Exception.class);
 		prepareMethod.setParameters("Dto " + Strings.uncapitalize(classDto.getString("className")).concat("Dto"))
 				.addAnnotation(Override.class);
@@ -162,7 +225,15 @@ public class TransactionGenerator implements Generator {
 		// Extend with DefaultBusinessTransaction
 		cls.extendSuperType(DefaultBusinessTransaction.class);
 
-		System.err.println(cls.toString());
+		File outputDir = new File(baseDir, packageName.replace(".", "/").concat("/"));
+		if (!outputDir.isDirectory())
+			outputDir.mkdirs();
+		File outputFile = new File(outputDir, cls.getName().concat(".java"));
+
+		FileWriter writer = new FileWriter(outputFile);
+		writer.write(cls.toString());
+		writer.close();
+		System.out.println("Generator successfully create " + cls.getName());
 	}
 
 	private String getPrimaryKeyRef(List<Dto> fields) {
@@ -180,9 +251,11 @@ public class TransactionGenerator implements Generator {
 	}
 
 	public static void main(String[] args) {
-		//Usage
-		Generator generator = new TransactionGenerator("Add", "org.slerp.ecomerce.bo.product",
-				new File("/home/kiditz/apps/framework/slerp-ecomerce/src/main/java/"), false);
+		// Usage
+		Generator generator = new TransactionGenerator("Edit", "org.slerp.ecomerce.service.product.test",
+				new File("/home/kiditz/apps/framework/slerp-ecomerce/src/main/java/"), true);
+		// generator.generate("category");
 		generator.generate("product");
+
 	}
 }
