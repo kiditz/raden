@@ -16,9 +16,9 @@ public class Validator {
 	}
 
 	public static void validateNumber(String message, Dto inputDto, String... keys) {
-		validateKey(message, inputDto, keys);		
+		validateKey(message, inputDto, keys);
 		for (String key : keys) {
-			if (!inputDto.get(key).toString().matches(".*[0-9]."))
+			if (!inputDto.getString(key).matches(".*[0-9].*"))
 				throw new CoreException(message.replace("@", key));
 		}
 	}
