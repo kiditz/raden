@@ -11,9 +11,10 @@ import org.jboss.forge.roaster.model.source.JavaClassSource;
 import org.slerp.core.Dto;
 
 public class EntityUtils {
-	static List<Dto> entitiesDto = new ArrayList<>();
+	static Dto input = new Dto();
 
-	public static List<Dto> readEntities(File baseDir) throws IOException {
+	public static Dto readEntities(File baseDir) throws IOException {
+
 		File[] listFile = baseDir.listFiles();
 		for (File file : listFile) {
 			if (file.isDirectory()) {
@@ -21,14 +22,14 @@ public class EntityUtils {
 			} else {
 				if (StringConverter.getExtension(file).equals("java")) {
 					if (isEntity(file)) {
-						Dto entityDto = new Dto();
-						entityDto.put(StringConverter.getFilename(file), file.getAbsolutePath());
-						entitiesDto.add(entityDto);
+						// Dto entityDto = new Dto();
+						input.put(StringConverter.getFilename(file), file.getAbsolutePath());
+
 					}
 				}
 			}
 		}
-		return entitiesDto;
+		return input;
 	}
 
 	private static boolean isEntity(File file) throws IOException {
@@ -38,7 +39,6 @@ public class EntityUtils {
 				return true;
 			}
 		} catch (Exception e) {
-			// TODO: handle exception
 		}
 		return false;
 	}
@@ -54,7 +54,7 @@ public class EntityUtils {
 			Dto fieldDto = new Dto();
 			fieldDto.put("fieldName", field.getName());
 			fieldDto.put("fieldType", field.getType().getQualifiedName());
-			
+
 			if (field.hasAnnotation("javax.validation.constraints.NotNull")) {
 				fieldDto.put("isNull", false);
 			} else {
@@ -62,7 +62,7 @@ public class EntityUtils {
 			}
 			if (field.hasAnnotation("javax.persistence.Id")) {
 				fieldDto.put("isPrimaryKey", true);
-			}else{
+			} else {
 				fieldDto.put("isPrimaryKey", false);
 			}
 			String fieldType = field.getType().getQualifiedName();
@@ -84,7 +84,7 @@ public class EntityUtils {
 			}
 			if (field.hasAnnotation("javax.persistence.OneToMany")) {
 				fieldDto.put("isForeignKey", true);
-			}else{
+			} else {
 				fieldDto.put("isForeignKey", false);
 			}
 			fieldsDto.add(fieldDto);
@@ -92,4 +92,8 @@ public class EntityUtils {
 		return classDto.put("fields", fieldsDto);
 	}
 
+	public static void main(String[] args) throws IOException {
+		Dto input = EntityUtils.readEntities(new File("/home/kiditz/apps/framework/slerp-ecomerce/src/main/java/"));
+		System.err.println(input);
+	}
 }
