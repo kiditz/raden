@@ -70,7 +70,7 @@ public class Dto implements Map<Object, Object> {
 	}
 
 	public Boolean getBoolean(Object key) {
-		return (Boolean) get(key);
+		return Boolean.valueOf(getString(key));
 	}
 
 	public Long getLong(Object key) {
@@ -102,7 +102,7 @@ public class Dto implements Map<Object, Object> {
 	}
 
 	public String getString(Object key) {
-		return (String) map.get(key);
+		return String.valueOf(map.get(key));
 	}
 
 	public Object putIfAbsent(Object key, Object value) {
