@@ -60,14 +60,18 @@ public class TransactionGenerator implements Generator {
 		// System.out.println(classDto);
 		JavaClassSource cls = Roaster.create(JavaClassSource.class);
 		cls.setName(mode.name().concat(classDto.getString("className"))).setPackage(packageName).setPublic();
+		cls.addAnnotation("org.springframework.stereotype.Service");
+		cls.addAnnotation("org.springframework.transaction.annotation.Transactional");
 		cls.addField().setName(Strings.uncapitalize(classDto.getString("className") + "Repository"))
 				.setType(classDto.getString("className") + "Repository")
 				.addAnnotation("org.springframework.beans.factory.annotation.Autowired");
+
 		cls.addImport(classDto.getString("packageName").replace("entity", "repo").concat(".")
 				.concat(classDto.getString("className")) + "Repository");
 		cls.addImport(Dto.class);
 		cls.addImport(classDto.getString("packageName").concat(".").concat(classDto.getString("className")));
 		cls.addImport(CoreException.class);
+
 		List<String> keyValues = new ArrayList<>();
 		List<String> notNullValues = new ArrayList<>();
 		List<String> numberValues = new ArrayList<>();
@@ -124,6 +128,9 @@ public class TransactionGenerator implements Generator {
 				if (field.getBoolean("isNumber")) {
 					numberValues.add(fieldName);
 				}
+				if (fieldName.contains("email")) {
+					emailValues.add(fieldName);
+				}
 			} else if (mode == TransactionMode.Edit) {
 				if (field.getBoolean("isForeignKey"))
 					continue;
@@ -144,12 +151,11 @@ public class TransactionGenerator implements Generator {
 						file = file.replace(classDto.getString("className"), simpleField);
 						Dto referenceDto = EntityUtils.readEntityAsDto(new File(file));
 						String primaryKeyRef = getPrimaryKeyRef(referenceDto.getList("fields")); //
-						prepareBody.append("Dto " + Strings.uncapitalize(simpleField) + "Dto = " + uncapClassName
-								+ "Dto.getDto(\"" + fieldName + "\");\n");
-						prepareBody.append(simpleField + " " + fieldName + " = " + Strings.uncapitalize(simpleField)
-								+ "Dto" + ".convertTo(" + simpleField + ".class);\n");
-						prepareBody.append(fieldName + " = " + repoName + ".findOne(" + fieldName + ".get"
-								+ Strings.capitalize(primaryKeyRef) + "());");
+						String primaryDtoVar = Strings.uncapitalize(simpleField) + "Dto";
+						prepareBody.append("Dto " + primaryDtoVar + " = " + uncapClassName + "Dto.getDto(\"" + fieldName
+								+ "\");\n");
+						prepareBody.append(simpleField.concat(" ").concat(fieldName).concat(" = ") + repoName
+								+ ".findOne(" + primaryDtoVar.concat(".getLong(\"" + primaryKeyRef + "\")") + ");");
 						prepareBody.append("if (" + fieldName + " == null){");
 						prepareBody.append("throw new CoreException(" + simpleField + ".class.getName() + \"."
 								+ fieldName + "\");");
@@ -169,30 +175,49 @@ public class TransactionGenerator implements Generator {
 				if (field.getBoolean("isNumber")) {
 					numberValues.add(fieldName);
 				}
+				if (fieldName.contains("email")) {
+					emailValues.add(fieldName);
+				}
+			} else if (mode == TransactionMode.Remove) {
+				if (!field.getBoolean("isPrimaryKey")) {
+					continue;
+				}
+
+				keyValues.add(fieldName);
+				if (field.getBoolean("isNumber")) {
+					numberValues.add(fieldName);
+				}
+				if (fieldName.contains("email")) {
+					emailValues.add(fieldName);
+				}
 
 			}
 
-			if (fieldName.contains("email")) {
-				emailValues.add(fieldName);
-			}
 		}
-		if (enableValidator) {
-			prepareBody.append(className + " " + uncapClassName + " = " + uncapClassName + "Dto.convertTo(" + className
-					+ ".class);");
+		if (enableValidator && !(mode == TransactionMode.Add)) {
+			// prepareBody.append(className + " " + uncapClassName + " = " +
+			// uncapClassName + "Dto.convertTo(" + className
+			// + ".class);");
 			String pkField = getPrimaryKeyRef(fields);
-			prepareBody.append(uncapClassName + " = " + uncapClassName + "Repository.findOne(" + uncapClassName + ".get"
-					+ Strings.capitalize(pkField) + "());");
-			prepareBody.append("if (product == null) {");
+			prepareBody.append(className.concat(" ").concat(uncapClassName).concat(" = ").concat(uncapClassName)
+					.concat("Repository.findOne(").concat(uncapClassName).concat("Dto.getLong(\"").concat(pkField)
+					.concat("\"));"));
+			prepareBody.append("if (" + uncapClassName + " == null) {");
 			prepareBody.append("throw new CoreException(" + className + ".class.getName() + \"." + pkField + "\");");
 			prepareBody.append("}");
 		}
+
 		// Create handle body
 		handleBody.append("super.handle(" + Strings.uncapitalize(classDto.getString("className")).concat("Dto") + ");");
 		handleBody.append("try {");
 
 		handleBody.append(className + " " + uncapClassName + " = " + uncapClassName + "Dto.convertTo("
 				+ classDto.getString("className") + ".class);");
-		handleBody.append(uncapClassName + " = " + uncapClassName + "Repository.save(" + uncapClassName + ");");
+		if (mode != TransactionMode.Remove) {
+			handleBody.append(uncapClassName + " = " + uncapClassName + "Repository.save(" + uncapClassName + ");");
+		} else {
+			handleBody.append(uncapClassName + "Repository.delete(" + uncapClassName+ ");");
+		}
 		handleBody.append("return new Dto(" + uncapClassName + ");");
 		handleBody.append("} catch (Exception e) {");
 		handleBody.append("throw new CoreException(e);");
@@ -252,7 +277,7 @@ public class TransactionGenerator implements Generator {
 
 	public static void main(String[] args) {
 		// Usage
-		Generator generator = new TransactionGenerator("Edit", "org.slerp.ecomerce.service.product.test",
+		Generator generator = new TransactionGenerator("Remove", "org.slerp.ecomerce.service.product",
 				new File("/home/kiditz/apps/framework/slerp-ecomerce/src/main/java/"), true);
 		// generator.generate("category");
 		generator.generate("product");

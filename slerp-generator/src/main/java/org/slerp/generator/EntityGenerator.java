@@ -79,9 +79,7 @@ public class EntityGenerator implements Generator {
 			writer.write(repository);
 			writer.close();
 		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.println("Generator failed to create " + StringConverter.getFilename(fileToWrite));
-			return;
+			throw new RuntimeException(e);
 		}
 		System.out.println("Generator successfully create " + StringConverter.getFilename(fileToWrite));
 		// System.out.println("At " + fileToWrite.getAbsolutePath());
