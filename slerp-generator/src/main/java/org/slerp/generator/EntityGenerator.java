@@ -133,7 +133,10 @@ public class EntityGenerator implements Generator {
 					if (!column.isNullAble()) {
 						field.addAnnotation("javax.persistence.Basic").setLiteralValue("optional", "false");
 					}
-					if (column.getColumnSize() < 100) {
+
+					if ((column.getColumnType().equalsIgnoreCase("varchar")
+							|| column.getColumnType().equalsIgnoreCase("bpchar")
+							|| column.getColumnType().equalsIgnoreCase("text")) && column.getColumnSize() < 100) {
 						field.addAnnotation("javax.validation.constraints.Size").setLiteralValue("min", "1")
 								.setLiteralValue("max", String.valueOf(column.getColumnSize()));
 					}
@@ -158,7 +161,9 @@ public class EntityGenerator implements Generator {
 								.setLiteralValue("initialValue", "1").setLiteralValue("allocationSize", "1");
 						// System.err.println(column.getColumnName() + ":" +
 						// column.getColumnSize());
-						if (column.getColumnSize() < 100) {
+						if ((column.getColumnType().equalsIgnoreCase("varchar")
+								|| column.getColumnType().equalsIgnoreCase("bpchar")
+								||column.getColumnType().equalsIgnoreCase("text")) && column.getColumnSize() < 100) {
 							field.addAnnotation("javax.validation.constraints.Size").setLiteralValue("min", "1")
 									.setLiteralValue("max", String.valueOf(column.getColumnSize()));
 						}
@@ -197,7 +202,8 @@ public class EntityGenerator implements Generator {
 								.concat(StringConverter.convertCaseSensitive(column.getColumnName(), false)));
 
 			}
-			if (column.getColumnSize() < 100) {
+			if ((column.getColumnType().equalsIgnoreCase("varchar") || column.getColumnType().equalsIgnoreCase("bpchar")
+					|| column.getColumnType().equalsIgnoreCase("text")) && column.getColumnSize() < 100) {
 				field.addAnnotation("javax.validation.constraints.Size").setLiteralValue("min", "1")
 						.setLiteralValue("max", String.valueOf(column.getColumnSize()));
 			}
