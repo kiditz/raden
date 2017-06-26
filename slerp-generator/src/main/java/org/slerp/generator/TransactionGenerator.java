@@ -216,7 +216,7 @@ public class TransactionGenerator implements Generator {
 		if (mode != TransactionMode.Remove) {
 			handleBody.append(uncapClassName + " = " + uncapClassName + "Repository.save(" + uncapClassName + ");");
 		} else {
-			handleBody.append(uncapClassName + "Repository.delete(" + uncapClassName+ ");");
+			handleBody.append(uncapClassName + "Repository.delete(" + uncapClassName + ");");
 		}
 		handleBody.append("return new Dto(" + uncapClassName + ");");
 		handleBody.append("} catch (Exception e) {");
@@ -276,11 +276,8 @@ public class TransactionGenerator implements Generator {
 	}
 
 	public static void main(String[] args) {
-		// Usage
 		Generator generator = new TransactionGenerator("Remove", "org.slerp.ecomerce.service.product",
 				new File("/home/kiditz/apps/framework/slerp-ecomerce/src/main/java/"), true);
-		// generator.generate("category");
 		generator.generate("product");
-
 	}
 }
