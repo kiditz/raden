@@ -59,7 +59,6 @@ public class EntityGenerator implements Generator {
 				StringConverter.convertCaseSensitive(table.getTableName(), true).concat(".java"));
 		FileWriter writer;
 		try {
-
 			writer = new FileWriter(fileToWrite);
 			System.out.println("Generator successfully create " + StringConverter.getFilename(fileToWrite));
 			writer.write(source);
@@ -82,7 +81,6 @@ public class EntityGenerator implements Generator {
 			throw new RuntimeException(e);
 		}
 		System.out.println("Generator successfully create " + StringConverter.getFilename(fileToWrite));
-		// System.out.println("At " + fileToWrite.getAbsolutePath());
 
 	}
 
@@ -163,7 +161,7 @@ public class EntityGenerator implements Generator {
 						// column.getColumnSize());
 						if ((column.getColumnType().equalsIgnoreCase("varchar")
 								|| column.getColumnType().equalsIgnoreCase("bpchar")
-								||column.getColumnType().equalsIgnoreCase("text")) && column.getColumnSize() < 100) {
+								|| column.getColumnType().equalsIgnoreCase("text")) && column.getColumnSize() < 100) {
 							field.addAnnotation("javax.validation.constraints.Size").setLiteralValue("min", "1")
 									.setLiteralValue("max", String.valueOf(column.getColumnSize()));
 						}
@@ -221,7 +219,7 @@ public class EntityGenerator implements Generator {
 		}
 		return cls.toString();
 	}
-
+	
 	private String generateJoin(List<JdbcColumn> columns, String src) {
 		JavaClassSource cls = Roaster.parse(JavaClassSource.class, src);
 		for (JdbcColumn column : columns) {

@@ -17,7 +17,7 @@ import org.slerp.core.business.DefaultBusinessTransaction;
 import org.slerp.utils.EntityUtils;
 
 public class TransactionGenerator implements Generator {
-	private String packageName;
+	private String packageTarget;
 	private String packageRepo;
 	private File baseDir;
 	private boolean enableValidator;
@@ -28,11 +28,11 @@ public class TransactionGenerator implements Generator {
 
 	TransactionMode mode = null;
 
-	public TransactionGenerator(String mode, String packageName, String packageRepo, File baseDir,
+	public TransactionGenerator(String mode, String packageTarget, String packageRepo, File baseDir,
 			boolean enableValidator) {
 		this.enableValidator = enableValidator;
-		this.packageName = packageName;
-		Assert.notNull(packageName, "Package Name should be filled");
+		this.packageTarget = packageTarget;
+		Assert.notNull(packageTarget, "Package Name should be filled");
 		this.baseDir = baseDir;
 		Assert.notNull(baseDir, "Base Directory be should be filled");
 		this.mode = TransactionMode.valueOf(mode);
@@ -61,7 +61,7 @@ public class TransactionGenerator implements Generator {
 	private void createBusinessTransaction(Dto classDto, File entityFile) throws IOException {
 		// System.out.println(classDto);
 		JavaClassSource cls = Roaster.create(JavaClassSource.class);
-		cls.setName(mode.name().concat(classDto.getString("className"))).setPackage(packageName).setPublic();
+		cls.setName(mode.name().concat(classDto.getString("className"))).setPackage(packageTarget).setPublic();
 		cls.addAnnotation("org.springframework.stereotype.Service");
 		cls.addAnnotation("org.springframework.transaction.annotation.Transactional");
 		cls.addField().setName(Strings.uncapitalize(classDto.getString("className") + "Repository"))
@@ -70,7 +70,7 @@ public class TransactionGenerator implements Generator {
 
 		cls.addImport(packageRepo.concat(".").concat(classDto.getString("className")) + "Repository");
 		cls.addImport(Dto.class);
-		cls.addImport(classDto.getString("packageName").concat(".").concat(classDto.getString("className")));
+		cls.addImport(classDto.getString("packageTarget").concat(".").concat(classDto.getString("className")));
 		cls.addImport(CoreException.class);
 
 		List<String> keyValues = new ArrayList<>();
@@ -123,7 +123,7 @@ public class TransactionGenerator implements Generator {
 						cls.addField().setName(repoName).setType(simpleField + "Repository")
 								.addAnnotation("org.springframework.beans.factory.annotation.Autowired");
 						cls.addImport(packageRepo.concat(".").concat(simpleField) + "Repository");
-						cls.addImport(classDto.getString("packageName").concat(".").concat(simpleField));
+						cls.addImport(classDto.getString("packageTarget").concat(".").concat(simpleField));
 					}
 				if (field.getBoolean("isNumber")) {
 					numberValues.add(fieldName);
@@ -168,7 +168,7 @@ public class TransactionGenerator implements Generator {
 						cls.addField().setName(repoName).setType(simpleField + "Repository")
 								.addAnnotation("org.springframework.beans.factory.annotation.Autowired");
 						cls.addImport(packageRepo.concat(".").concat(simpleField) + "Repository");
-						cls.addImport(classDto.getString("packageName").concat(".").concat(simpleField));
+						cls.addImport(classDto.getString("packageTarget").concat(".").concat(simpleField));
 					}
 				}
 				if (field.getBoolean("isNumber")) {
@@ -246,14 +246,14 @@ public class TransactionGenerator implements Generator {
 		// Extend with DefaultBusinessTransaction
 		cls.extendSuperType(DefaultBusinessTransaction.class);
 
-		File outputDir = new File(baseDir, packageName.replace(".", "/").concat("/"));
+		File outputDir = new File(baseDir, packageTarget.replace(".", "/").concat("/"));
 		if (!outputDir.isDirectory())
 			outputDir.mkdirs();
 		File outputFile = new File(outputDir, cls.getName().concat(".java"));
 		FileWriter writer = new FileWriter(outputFile);
 		writer.write(cls.toString());
 		writer.close();
-		System.out.println("Generator successfully create : ".concat(packageName.concat(".").concat(cls.getName())));
+		System.out.println("Generator successfully create : ".concat(packageTarget.concat(".").concat(cls.getName())));
 	}
 
 	private String getPrimaryKeyRef(List<Dto> fields) {
@@ -265,14 +265,13 @@ public class TransactionGenerator implements Generator {
 		return null;
 	}
 
-	public Dto getEntity() throws IOException {
-		// List<Dto> entitiesDto = EntityUtils.readEntities(baseDir);
+	public Dto getEntity() throws IOException { 
 		return EntityUtils.readEntities(baseDir);
 	}
 
 	public static void main(String[] args) {
-		Generator generator = new TransactionGenerator("Add", "org.slerp.ecomerce.service.product",
-				"org.slerp.ecomerce.repo", new File("/home/kiditz/apps/framework/slerp-ecomerce/src/main/java/"), true);
+		Generator generator = new TransactionGenerator("Add", "org.slerp.ecommerce.service.product",
+				"org.slerp.ecommerce.repo", new File("/home/kiditz/apps/framework/slerp-ecommerce-service/src/main/java/"), true);
 		// generator.generate("product");
 		generator.generate("Category");
 	}

@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-@Mojo(name = "transactional", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
+@Mojo(name = "transaction", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
 public class TransactionGeneratorMojo extends AbstractMojo {
 	@Parameter(defaultValue = "${project.basedir}/src/main/resources/application.properties", property = "properties", required = true)
 	private File properties;
@@ -52,20 +52,20 @@ public class TransactionGeneratorMojo extends AbstractMojo {
 		} catch (Exception e) {
 			cacheDto = new Dto();
 		}
-		String cacheEnPackage = cacheDto.getString("packageEntity");
+		String cacheEnPackage = cacheDto.getString("packageTarget");
 		String cacheRepPackage = cacheDto.getString("packageRepo");
-
+		
 		System.out.print("Package " + (cacheEnPackage == null ? "" : "(" + cacheEnPackage + ")") + ": ");
 		Scanner scanner = new Scanner(System.in);
-		String packageName = scanner.nextLine();
-		if (StringUtils.isEmpty(packageName)) {
-			packageName = cacheEnPackage;
+		String packageTarget = scanner.nextLine();
+		if (StringUtils.isEmpty(packageTarget)) {
+			packageTarget = cacheEnPackage;
 		}
-		if (StringUtils.isEmpty(packageName)) {
+		if (StringUtils.isEmpty(packageTarget)) {
 			throw new CoreException("Package name is require to be filled");
 		}
 
-		validatePackage(packageName, "Package is invalid");
+		validatePackage(packageTarget, "Package is invalid");
 		System.out.print("Repository Package " + (cacheRepPackage == null ? "" : "(" + cacheRepPackage + ")") + ": ");
 		String packageRepoName = scanner.nextLine();
 		if (StringUtils.isEmpty(packageRepoName)) {
@@ -74,7 +74,7 @@ public class TransactionGeneratorMojo extends AbstractMojo {
 		if (StringUtils.isEmpty(packageRepoName)) {
 			throw new CoreException("Package name is require to be filled");
 		}
-		
+
 		validatePackage(packageRepoName, "Repository Package is invalid");
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
@@ -96,7 +96,7 @@ public class TransactionGeneratorMojo extends AbstractMojo {
 			transactionMode = "Remove";
 			break;
 		}
-		
+
 		System.out.print("Enable Prepare (Y/N) : ");
 		boolean enablePrepare = true;
 		if (cacheDto.get("enablePrepare") != null)
@@ -106,9 +106,8 @@ public class TransactionGeneratorMojo extends AbstractMojo {
 			enablePrepare = true;
 		else if (scanner.nextLine().equalsIgnoreCase("N"))
 			enablePrepare = false;
-		TransactionGenerator generator = new TransactionGenerator(transactionMode, packageName, packageRepoName, srcDir,
-				enablePrepare);
-		
+		TransactionGenerator generator = new TransactionGenerator(transactionMode, packageTarget, packageRepoName,
+				srcDir, enablePrepare);
 		System.out.println("----------------------------------------------------------------------");
 		System.out.println("Found entity in project");
 		System.out.println("----------------------------------------------------------------------");
@@ -125,7 +124,7 @@ public class TransactionGeneratorMojo extends AbstractMojo {
 			e.printStackTrace();
 		}
 		System.out.print("Entity Name : ");
-		String inputEntity = scanner.nextLine();		
+		String inputEntity = scanner.nextLine();
 		if (StringUtils.isEmpty(inputEntity))
 			throw new CoreException("Entity name should be filled");
 		List<String> inputTemp = new ArrayList<>();
@@ -142,7 +141,7 @@ public class TransactionGeneratorMojo extends AbstractMojo {
 			generator.generate(entityName);
 		}
 
-		cacheDto.put("packageEntity", packageName);
+		cacheDto.put("packageTarget", packageTarget);
 		cacheDto.put("packageRepo", packageRepoName);
 		cacheDto.put("enablePrepare", enablePrepare);
 		try {

@@ -16,6 +16,9 @@ public class EntityUtils {
 	public static Dto readEntities(File baseDir) throws IOException {
 
 		File[] listFile = baseDir.listFiles();
+		if (listFile == null || listFile.length == 0)
+			return input;
+
 		for (File file : listFile) {
 			if (file.isDirectory()) {
 				readEntities(file);
@@ -31,7 +34,7 @@ public class EntityUtils {
 		}
 		return input;
 	}
-
+	
 	private static boolean isEntity(File file) throws IOException {
 		try {
 			JavaClassSource cls = Roaster.parse(JavaClassSource.class, file);
