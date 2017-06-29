@@ -52,31 +52,31 @@ public class TransactionGeneratorMojo extends AbstractMojo {
 		} catch (Exception e) {
 			cacheDto = new Dto();
 		}
-		
+
 		String cacheEnPackage = cacheDto.getString("packageTarget");
 		String cacheRepPackage = cacheDto.getString("packageRepo");
-		
-		System.out.print("Package " + (cacheEnPackage == null ? "" : "(" + cacheEnPackage + ")") + ": ");
+
+		System.out.print("Package Target" + (cacheEnPackage == null ? "" : "(" + cacheEnPackage + ")") + ": ");
 		Scanner scanner = new Scanner(System.in);
 		String packageTarget = scanner.nextLine();
 		if (StringUtils.isEmpty(packageTarget)) {
 			packageTarget = cacheEnPackage;
 		}
 		if (StringUtils.isEmpty(packageTarget)) {
-			throw new CoreException("Package name is require to be filled");
+			throw new CoreException("Package Target is required to be filled");
 		}
 
-		validatePackage(packageTarget, "Package is invalid");
-		System.out.print("Repository Package " + (cacheRepPackage == null ? "" : "(" + cacheRepPackage + ")") + ": ");
+		validatePackage(packageTarget, "Package Target is invalid");
+		System.out.print("Package Repository " + (cacheRepPackage == null ? "" : "(" + cacheRepPackage + ")") + ": ");
 		String packageRepoName = scanner.nextLine();
 		if (StringUtils.isEmpty(packageRepoName)) {
 			packageRepoName = cacheRepPackage;
 		}
 		if (StringUtils.isEmpty(packageRepoName)) {
-			throw new CoreException("Package name is require to be filled");
+			throw new CoreException("Package name is required to be filled");
 		}
 
-		validatePackage(packageRepoName, "Repository Package is invalid");
+		validatePackage(packageRepoName, "Package Repository is invalid");
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
 		System.out.println("----------------------------------------------------------------------");
