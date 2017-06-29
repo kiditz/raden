@@ -133,6 +133,7 @@ public class EntityGenerator implements Generator {
 					}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 					if ((column.getColumnType().equalsIgnoreCase("varchar")
 							|| column.getColumnType().equalsIgnoreCase("bpchar")
 							|| column.getColumnType().equalsIgnoreCase("text")) && column.getColumnSize() < 100) {
@@ -141,6 +142,11 @@ public class EntityGenerator implements Generator {
 							&& column.getColumnType().equalsIgnoreCase("bpchar")
 							&& column.getColumnType().equalsIgnoreCase("text") && column.getColumnSize() < 100) {
 >>>>>>> refs/remotes/origin/framework
+=======
+					if (column.getColumnType().equalsIgnoreCase("varchar")
+							&& column.getColumnType().equalsIgnoreCase("bpchar")
+							&& column.getColumnType().equalsIgnoreCase("text") && column.getColumnSize() < 100) {
+>>>>>>> 49ab8875b9e1b34dba820da1e294970fc51bf6b0
 						field.addAnnotation("javax.validation.constraints.Size").setLiteralValue("min", "1")
 								.setLiteralValue("max", String.valueOf(column.getColumnSize()));
 					}
@@ -166,6 +172,7 @@ public class EntityGenerator implements Generator {
 						// System.err.println(column.getColumnName() + ":" +
 						// column.getColumnSize());
 <<<<<<< HEAD
+<<<<<<< HEAD
 						if ((column.getColumnType().equalsIgnoreCase("varchar")
 								|| column.getColumnType().equalsIgnoreCase("bpchar")
 								|| column.getColumnType().equalsIgnoreCase("text")) && column.getColumnSize() < 100) {
@@ -174,6 +181,11 @@ public class EntityGenerator implements Generator {
 								&& column.getColumnType().equalsIgnoreCase("bpchar")
 								&& column.getColumnType().equalsIgnoreCase("text") && column.getColumnSize() < 100) {
 >>>>>>> refs/remotes/origin/framework
+=======
+						if (column.getColumnType().equalsIgnoreCase("varchar")
+								&& column.getColumnType().equalsIgnoreCase("bpchar")
+								&& column.getColumnType().equalsIgnoreCase("text") && column.getColumnSize() < 100) {
+>>>>>>> 49ab8875b9e1b34dba820da1e294970fc51bf6b0
 							field.addAnnotation("javax.validation.constraints.Size").setLiteralValue("min", "1")
 									.setLiteralValue("max", String.valueOf(column.getColumnSize()));
 						}
