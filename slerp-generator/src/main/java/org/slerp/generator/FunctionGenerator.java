@@ -126,7 +126,8 @@ public class FunctionGenerator implements Generator {
 			}
 			// System.err.println(buffer.toString());
 			clsMethod.setBody(buffer.toString());
-			writer = new FileWriter(new File(srcDir, packageTarget.replace(".", "/").concat("/").concat(Strings.capitalize(methodName)).concat(".java")));
+			writer = new FileWriter(new File(srcDir, packageTarget.replace(".", "/").concat("/")
+					.concat(Strings.capitalize(methodName)).concat(".java")));
 			writer.write(cls.toString());
 			writer.close();
 			System.err.println("Generated Successfully : " + Strings.capitalize(methodName));

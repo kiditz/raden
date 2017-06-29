@@ -40,7 +40,6 @@ public class EntityGeneratorMojo extends AbstractMojo {
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		if (!properties.exists())
 			throw new RuntimeException("Cannot found configuration file at " + properties.getPath());
-
 		System.out.println("----------------------------------------------------------------------");
 		System.out.println("Entity Generator");
 		System.out.println("----------------------------------------------------------------------");

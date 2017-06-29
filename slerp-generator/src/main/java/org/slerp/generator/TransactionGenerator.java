@@ -70,7 +70,7 @@ public class TransactionGenerator implements Generator {
 
 		cls.addImport(packageRepo.concat(".").concat(classDto.getString("className")) + "Repository");
 		cls.addImport(Dto.class);
-		cls.addImport(classDto.getString("packageTarget").concat(".").concat(classDto.getString("className")));
+		cls.addImport(classDto.getString("packageName").concat(".").concat(classDto.getString("className")));
 		cls.addImport(CoreException.class);
 
 		List<String> keyValues = new ArrayList<>();
@@ -123,7 +123,7 @@ public class TransactionGenerator implements Generator {
 						cls.addField().setName(repoName).setType(simpleField + "Repository")
 								.addAnnotation("org.springframework.beans.factory.annotation.Autowired");
 						cls.addImport(packageRepo.concat(".").concat(simpleField) + "Repository");
-						cls.addImport(classDto.getString("packageTarget").concat(".").concat(simpleField));
+						cls.addImport(classDto.getString("packageName").concat(".").concat(simpleField));
 					}
 				if (field.getBoolean("isNumber")) {
 					numberValues.add(fieldName);
@@ -168,7 +168,7 @@ public class TransactionGenerator implements Generator {
 						cls.addField().setName(repoName).setType(simpleField + "Repository")
 								.addAnnotation("org.springframework.beans.factory.annotation.Autowired");
 						cls.addImport(packageRepo.concat(".").concat(simpleField) + "Repository");
-						cls.addImport(classDto.getString("packageTarget").concat(".").concat(simpleField));
+						cls.addImport(classDto.getString("packageName").concat(".").concat(simpleField));
 					}
 				}
 				if (field.getBoolean("isNumber")) {
@@ -265,13 +265,14 @@ public class TransactionGenerator implements Generator {
 		return null;
 	}
 
-	public Dto getEntity() throws IOException { 
+	public Dto getEntity() throws IOException {
 		return EntityUtils.readEntities(baseDir);
 	}
 
 	public static void main(String[] args) {
 		Generator generator = new TransactionGenerator("Add", "org.slerp.ecommerce.service.product",
-				"org.slerp.ecommerce.repo", new File("/home/kiditz/apps/framework/slerp-ecommerce-service/src/main/java/"), true);
+				"org.slerp.ecommerce.repo",
+				new File("/home/kiditz/apps/framework/slerp-ecommerce-service/src/main/java/"), true);
 		// generator.generate("product");
 		generator.generate("Category");
 	}
