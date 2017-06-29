@@ -158,7 +158,8 @@ public class EntityGenerator implements Generator {
 								.setStringValue("name", column.getSequenceName().toUpperCase())
 								.setStringValue("sequenceName", column.getSequenceName())
 								.setLiteralValue("initialValue", "1").setLiteralValue("allocationSize", "1");
-
+						// System.err.println(column.getColumnName() + ":" +
+						// column.getColumnSize());
 						if (column.getColumnType().equalsIgnoreCase("varchar")
 								&& column.getColumnType().equalsIgnoreCase("bpchar")
 								&& column.getColumnType().equalsIgnoreCase("text") && column.getColumnSize() < 100) {
