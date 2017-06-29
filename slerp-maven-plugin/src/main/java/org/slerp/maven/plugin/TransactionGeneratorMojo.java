@@ -52,6 +52,7 @@ public class TransactionGeneratorMojo extends AbstractMojo {
 		} catch (Exception e) {
 			cacheDto = new Dto();
 		}
+		
 		String cacheEnPackage = cacheDto.getString("packageTarget");
 		String cacheRepPackage = cacheDto.getString("packageRepo");
 		
