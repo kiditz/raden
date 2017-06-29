@@ -132,21 +132,10 @@ public class EntityGenerator implements Generator {
 						field.addAnnotation("javax.persistence.Basic").setLiteralValue("optional", "false");
 					}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-					if ((column.getColumnType().equalsIgnoreCase("varchar")
-							|| column.getColumnType().equalsIgnoreCase("bpchar")
-							|| column.getColumnType().equalsIgnoreCase("text")) && column.getColumnSize() < 100) {
-=======
 					if (column.getColumnType().equalsIgnoreCase("varchar")
 							&& column.getColumnType().equalsIgnoreCase("bpchar")
 							&& column.getColumnType().equalsIgnoreCase("text") && column.getColumnSize() < 100) {
->>>>>>> refs/remotes/origin/framework
-=======
-					if (column.getColumnType().equalsIgnoreCase("varchar")
-							&& column.getColumnType().equalsIgnoreCase("bpchar")
-							&& column.getColumnType().equalsIgnoreCase("text") && column.getColumnSize() < 100) {
->>>>>>> 49ab8875b9e1b34dba820da1e294970fc51bf6b0
+
 						field.addAnnotation("javax.validation.constraints.Size").setLiteralValue("min", "1")
 								.setLiteralValue("max", String.valueOf(column.getColumnSize()));
 					}
@@ -171,21 +160,9 @@ public class EntityGenerator implements Generator {
 								.setLiteralValue("initialValue", "1").setLiteralValue("allocationSize", "1");
 						// System.err.println(column.getColumnName() + ":" +
 						// column.getColumnSize());
-<<<<<<< HEAD
-<<<<<<< HEAD
-						if ((column.getColumnType().equalsIgnoreCase("varchar")
-								|| column.getColumnType().equalsIgnoreCase("bpchar")
-								|| column.getColumnType().equalsIgnoreCase("text")) && column.getColumnSize() < 100) {
-=======
 						if (column.getColumnType().equalsIgnoreCase("varchar")
 								&& column.getColumnType().equalsIgnoreCase("bpchar")
 								&& column.getColumnType().equalsIgnoreCase("text") && column.getColumnSize() < 100) {
->>>>>>> refs/remotes/origin/framework
-=======
-						if (column.getColumnType().equalsIgnoreCase("varchar")
-								&& column.getColumnType().equalsIgnoreCase("bpchar")
-								&& column.getColumnType().equalsIgnoreCase("text") && column.getColumnSize() < 100) {
->>>>>>> 49ab8875b9e1b34dba820da1e294970fc51bf6b0
 							field.addAnnotation("javax.validation.constraints.Size").setLiteralValue("min", "1")
 									.setLiteralValue("max", String.valueOf(column.getColumnSize()));
 						}
@@ -243,7 +220,7 @@ public class EntityGenerator implements Generator {
 		}
 		return cls.toString();
 	}
-	
+
 	private String generateJoin(List<JdbcColumn> columns, String src) {
 		JavaClassSource cls = Roaster.parse(JavaClassSource.class, src);
 		for (JdbcColumn column : columns) {
