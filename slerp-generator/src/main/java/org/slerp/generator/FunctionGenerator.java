@@ -80,11 +80,16 @@ public class FunctionGenerator implements Generator {
 				method = inf.addMethod().setName(methodName).setReturnType(packageName.concat(".").concat(className))
 						.setPublic();
 			}
+			String[] keyValidationValues = new String[params.size()];
+			int i = 0;
 			for (Entry<Object, Object> entry : params.entrySet()) {
+				keyValidationValues[i] = entry.getKey().toString();
 				method.addParameter(entry.getValue().toString(), entry.getKey().toString())
 						.addAnnotation("org.springframework.data.repository.query.Param")
 						.setStringValue(entry.getKey().toString());
+				i++;
 			}
+
 			method.addAnnotation("org.springframework.data.jpa.repository.Query").setStringValue(getQuery());
 
 			FileWriter writer = new FileWriter(repositoryFile);
@@ -95,6 +100,7 @@ public class FunctionGenerator implements Generator {
 			cls.setPackage(packageTarget);
 			cls.addImport(packageName.concat(".").concat(className));
 			cls.addAnnotation("org.springframework.stereotype.Service");
+			cls.addAnnotation("org.slerp.core.validation.KeyValidation").setStringArrayValue(keyValidationValues);
 			MethodSource<JavaClassSource> clsMethod = cls.addMethod().setName("handle");
 			clsMethod.setPublic();
 			clsMethod.setReturnType(Dto.class);
@@ -114,7 +120,7 @@ public class FunctionGenerator implements Generator {
 					buffer.append(" = ").append(repoName.concat(".").concat(methodName));
 					buffer.append("(").append(var.concat("Dto").concat(".get").concat(entry.getValue().toString())
 							.concat("(\"").concat(entry.getKey().toString()).concat("\")")).append(");\n");
-					buffer.append("return new Dto().put(\"" + var.concat("List") + "\", " + var + ");");
+					buffer.append("return new Dto().put(\"" + var.concat("List") + "\", " + var.concat("List") + ");");
 				} else {
 					String var = Strings.uncapitalize(className);
 					buffer.append(className).append(" ").append(var);
@@ -165,8 +171,8 @@ public class FunctionGenerator implements Generator {
 	public static void main(String[] args) {
 		FunctionGenerator generator = new FunctionGenerator("org.slerp.ecommerce.entity",
 				"org.slerp.ecommerce.repository", "/home/kiditz/apps/framework/slerp-ecommerce-service/src/main/java/",
-				"findProductByProductId");
-		String query = "SELECT p FROM Product p WHERE p.id = :productId";
+				"findProductByProductName");
+		String query = "SELECT p FROM Product p WHERE p.productName = :productName";
 
 		List<String> params = getParamsByQuery(query);
 		Dto paramDto = new Dto();
