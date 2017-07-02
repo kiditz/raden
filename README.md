@@ -9,6 +9,11 @@ Slerp can write code for entity and repository, function, generator, api and als
 ## Prerequisites
 
 You can build the slerp project with simple maven install after clone this repository
+Slerp only work for java 8 code because we use lamda expression to create this application
+
+## Before generate code you need to install
+* [Java 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) - The web framework used
+* [Maven](https://maven.apache.org/) - Dependency Management
 ### Slerp Core
 ```
 cd slerp/slerp-core
@@ -29,3 +34,4 @@ mvn clean install
 cd slerp/slerp-maven-plugin
 mvn clean install
 ```
+
