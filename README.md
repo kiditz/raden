@@ -4,7 +4,7 @@ Slerp is a maven plugin to generate jpa code for spring project in postgresql co
 
 ## Introduction
 
-Slerp can write code for entity and repository, function, generator, api and also unit testing for jpa
+Slerp can write code for entity and repository, function, transaction, api and also unit testing for jpa
 
 ## Prerequisites
 
