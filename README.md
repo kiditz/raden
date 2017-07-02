@@ -127,11 +127,14 @@ Generated Successfully Created : org.slerp.auth.entity.UserPrincipal.java
 Generated Successfully Created : org.slerp.auth.repository.UserPrincipalRepository.java
 ...
 ```
-Now check the output with your favorite ide or text editor. The output should be like this
+The output shoud be on src/main/java/org/slerp/auth/entity/UserPrincipal.java and src/main/java/org/slerp/auth/repository/UserPrincipalRepository.java
+
+with your favorite ide or text editor. The output should be like this
 
 ```
 package org.slerp.auth.entity;
 
+import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
@@ -148,7 +151,7 @@ import javax.validation.constraints.Size;
 @Table(name = "user_principal")
 @JsonAutoDetect(creatorVisibility = JsonAutoDetect.Visibility.NONE, fieldVisibility = JsonAutoDetect.Visibility.NONE, getterVisibility = JsonAutoDetect.Visibility.NONE, isGetterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 @XmlAccessorType(XmlAccessType.NONE)
-public class UserPrincipal {
+public class UserPrincipal implements Serializable {
 
 	@Id
 	@Column(name = "user_id")
