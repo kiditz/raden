@@ -120,17 +120,16 @@ Product Version	: 9.4.12
 Driver Name	: PostgreSQL Native Driver
 Login User	: postgres
 
-[ "category", "product", "user_authority", "user_principal" ]
-Tables : user_principal //
+[ "user_principal" ]
+Tables : user_principal //Input for table you wanted to generate
 Will Generate : [user_principal]
 Generated Successfully Created : org.slerp.auth.entity.UserPrincipal.java
 Generated Successfully Created : org.slerp.auth.repository.UserPrincipalRepository.java
 ...
 ```
 The output shoud be on src/main/java/org/slerp/auth/entity/UserPrincipal.java and src/main/java/org/slerp/auth/repository/UserPrincipalRepository.java
-
-with your favorite ide or text editor. The output should be like this
-
+so check it out with your favorite ide or text editor.
+#### Entity
 ```
 package org.slerp.auth.entity;
 
@@ -182,5 +181,93 @@ public class UserPrincipal implements Serializable {
 	@NotNull(message = "org.slerp.auth.entity.UserPrincipal.enabled")
 	private Boolean enabled;
 	/*Getter And Setter ...*/
+}
+```
+#### Repository
+
+```
+package org.slerp.auth.repository;
+
+import org.slerp.auth.entity.UserPrincipal;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UserPrincipalRepository extends JpaRepository<UserPrincipal, Long> {
+}
+```
+
+### Transaction
+
+The ```mvn slerp:transaction``` can be generate code with spring @Service and @Transactional it can be generated code for transaction type :
+* [Add] - To save data into database
+* [Edit] - To update data from database
+* [Remove] - To remove data from database
+
+```
+----------------------------------------------------------------------
+Transaction Generator
+----------------------------------------------------------------------
+Package Entity(org.slerp.auth.entity): org.slerp.auth.entity //Input for Entity Package
+Package Target(org.slerp.service.auth): org.slerp.service.auth //Input for Target Package
+Package Repository (org.slerp.auth.repository): org.slerp.auth.repository //Input for Repository Package
+----------------------------------------------------------------------
+Transaction Type
+----------------------------------------------------------------------
+1. Add
+2. Edit
+3. Remove
+
+Choose : 1 //Choose Transaction Type
+Enable Prepare (Y/N) : y // Enable Preparation work for validation
+----------------------------------------------------------------------
+Found entity in project
+----------------------------------------------------------------------
+1. UserAuthority
+2. UserPrincipal
+Entity Name : UserPrincipal // Input The Entity Name
+Will be generated [UserPrincipal]
+Generator successfully created : org.slerp.service.auth.AddUserPrincipal.java
+```
+The result will be something like this
+```
+package org.slerp.service.auth;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.slerp.auth.repository.UserPrincipalRepository;
+import org.slerp.core.Dto;
+import org.slerp.auth.entity.UserPrincipal;
+import org.slerp.core.CoreException;
+import org.slerp.core.validation.KeyValidation;
+import org.slerp.core.validation.NotBlankValidation;
+import org.slerp.core.business.DefaultBusinessTransaction;
+
+@Service
+@Transactional
+@KeyValidation({"username", "hashedPassword", "accountNonExpired",
+		"accountNonLocked", "credentialsNonExpired", "enabled"})
+@NotBlankValidation({"username", "hashedPassword", "accountNonExpired",
+		"accountNonLocked", "credentialsNonExpired", "enabled"})
+public class AddUserPrincipal extends DefaultBusinessTransaction {
+
+	@Autowired
+	UserPrincipalRepository userPrincipalRepository;
+
+	@Override
+	public void prepare(Dto userPrincipalDto) throws Exception {
+	}
+
+	@Override
+	public Dto handle(Dto userPrincipalDto) {
+		super.handle(userPrincipalDto);
+		try {
+			UserPrincipal userPrincipal = userPrincipalDto
+					.convertTo(UserPrincipal.class);
+			userPrincipal = userPrincipalRepository.save(userPrincipal);
+			return new Dto(userPrincipal);
+		} catch (Exception e) {
+			throw new CoreException(e);
+		}
+	}
 }
 ```
