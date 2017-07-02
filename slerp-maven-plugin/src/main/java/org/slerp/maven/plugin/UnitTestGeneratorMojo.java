@@ -5,8 +5,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -17,16 +19,15 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 import org.slerp.core.CoreException;
 import org.slerp.core.Dto;
-import org.slerp.generator.FunctionGenerator;
-import org.slerp.generator.FunctionGenerator.FunctionType;
+import org.slerp.generator.JUnitTestGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-@Mojo(name = "function", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
-public class FunctionGeneratorMojo extends AbstractMojo {
+@Mojo(name = "test", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
+public class UnitTestGeneratorMojo extends AbstractMojo {
 	@Parameter(defaultValue = "${project.basedir}/src/main/resources/application.properties", property = "properties", required = true)
 	private File properties;
 	@Parameter(defaultValue = "${project.basedir}/src/main/java", property = "srcDir", required = true)
@@ -41,7 +42,7 @@ public class FunctionGeneratorMojo extends AbstractMojo {
 			throw new RuntimeException("Cannot found configuration file at " + properties.getPath());
 
 		System.out.println("----------------------------------------------------------------------");
-		System.out.println("Function Generator");
+		System.out.println("Unit Test Generator");
 		System.out.println("----------------------------------------------------------------------");
 		if (!cacheDir.isDirectory())
 			cacheDir.mkdirs();
@@ -52,8 +53,8 @@ public class FunctionGeneratorMojo extends AbstractMojo {
 		} catch (Exception e) {
 			cacheDto = new Dto();
 		}
-		String cacheTargetPackage = cacheDto.getString("packageService");
 		String cacheEnPackage = cacheDto.getString("packageEntity");
+		String cacheTgtPackage = cacheDto.getString("packageService");
 		String cacheRepPackage = cacheDto.getString("packageRepo");
 
 		System.out.print("Package Entity" + (cacheEnPackage == null ? "" : "(" + cacheEnPackage + ")") + ": ");
@@ -63,91 +64,84 @@ public class FunctionGeneratorMojo extends AbstractMojo {
 			packageEntity = cacheEnPackage;
 		}
 		if (StringUtils.isEmpty(packageEntity)) {
-			throw new CoreException("Package Entity name is required to be filled");
+			throw new CoreException("Package Entity is required to be filled");
 		}
 
 		validatePackage(packageEntity, "Package Entity is invalid");
 
-		System.out.print("Package Repository  " + (cacheRepPackage == null ? "" : "(" + cacheRepPackage + ")") + ": ");
+		System.out.print("Package Target" + (cacheTgtPackage == null ? "" : "(" + cacheTgtPackage + ")") + ": ");
+		String packageService = scanner.nextLine();
+		if (StringUtils.isEmpty(packageService)) {
+			packageService = cacheTgtPackage;
+		}
+		if (StringUtils.isEmpty(packageService)) {
+			throw new CoreException("Package Target is required to be filled");
+		}
+
+		validatePackage(packageService, "Package Target is invalid");
+		System.out.print("Package Repository " + (cacheRepPackage == null ? "" : "(" + cacheRepPackage + ")") + ": ");
 		String packageRepoName = scanner.nextLine();
 		if (StringUtils.isEmpty(packageRepoName)) {
 			packageRepoName = cacheRepPackage;
 		}
 		if (StringUtils.isEmpty(packageRepoName)) {
-			throw new CoreException("Package Repository is required to be filled");
+			throw new CoreException("Package name is required to be filled");
 		}
+
 		validatePackage(packageRepoName, "Package Repository is invalid");
-
-		System.out.print("Package Target " + (cacheTargetPackage == null ? "" : "(" + cacheTargetPackage + ")") + ": ");
-		String packageService = scanner.nextLine();
-		if (StringUtils.isEmpty(packageService)) {
-			packageService = cacheTargetPackage;
-		}
-		if (StringUtils.isEmpty(packageService)) {
-			throw new CoreException("Package Target is required to be filled");
-		}
-		validatePackage(packageService, "Package Target is invalid");
-		System.out.print("Query : ");
-		String query = scanner.nextLine();
-		if (StringUtils.isEmpty(query)) {
-			throw new CoreException("Query is required to be filled");
-		}
-
-		System.out.print("Method Name : ");
-		String methodName = scanner.nextLine();
-		if (StringUtils.isEmpty(methodName)) {
-			throw new CoreException("Method name is required to be filled");
-		}
-
-		FunctionGenerator generator = new FunctionGenerator(packageEntity, packageRepoName, srcDir.getAbsolutePath(),
-				methodName);
-
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-		FunctionType[] types = FunctionType.values();
-		for (int i = 0; i < types.length; i++) {
-			System.out.println((i + 1) + ". " + types[i].name());
+		JUnitTestGenerator generator = new JUnitTestGenerator(srcDir.getAbsolutePath(), packageEntity, packageRepoName,
+				packageService);
+		System.out.println("----------------------------------------------------------------------");
+		System.out.println("Found Service in project");
+		System.out.println("----------------------------------------------------------------------");
+		Dto business = generator.getBusiness();
+		int i = 1;
+		for (Object businessName : business.keySet()) {
+			System.out.println(i + ". " + businessName);
+			i++;
+		}
+		System.out.print("Generate Class (a.k.a " + business.keySet().iterator().next() + ") : ");
+		String className = scanner.nextLine();
+		if (className == null)
+			throw new CoreException("Class name should be filled");
+		try {
+			generator.parse(className);
+		} catch (IOException e) {
+			throw new CoreException(e);
+		}
+		Set<Dto> fields = generator.getFields();
+		generate(fields, scanner);
+		scanner.close();
+		generator.generate();
+	}
+
+	private static void generate(Set<Dto> fieldSet, Scanner scanner) {
+		List<Dto> fields = new ArrayList<>();
+		fieldSet.forEach(fields::add);
+		for (int i = 0; i < fields.size(); i++) {
+			Dto field = fields.get(i);
+			String dataType = field.getString("fieldType");
+			if (dataType.equals("java.lang.Object")) {
+				System.out.print("\n");
+				System.out.print("Type for (" + field.getString("fieldName") + ") : ");
+				String tempType = scanner.nextLine();
+				dataType = JUnitTestGenerator.primitivType.get(tempType);
+			}
+			if (dataType == null) {
+				throw new CoreException(
+						"Cannot found data type please choose between " + JUnitTestGenerator.primitivType.keySet());
+			}
+			String simpleType = dataType.substring(dataType.lastIndexOf('.') + 1, dataType.length());
+
+			System.out
+					.print((i + 1) + ". " + field.getString("fieldName").concat("(" + simpleType + ") ").concat(" : "));
+			String value = scanner.nextLine();
+			field.put("fieldType", dataType);
+			field.put("value", value);
 		}
 
-		System.out.print("Choose Type (*) : ");
-		int typeInt = scanner.nextInt();
-		FunctionType type = null;
-		switch (typeInt) {
-		case 1:
-			type = FunctionType.PAGE;
-			break;
-		case 2:
-			type = FunctionType.SINGLE;
-			break;
-		case 3:
-		default:
-			type = FunctionType.LIST;
-			break;
-		}
-		generator.type = type;
-		
-		List<String> params = generator.getParamsByQuery(query);
-		Dto paramDto = new Dto();
-		for (String param : params) {
-			System.out.print("Data Type for " + param + " : ");
-			String dataType = scanner.next();
-			if (StringUtils.isEmpty(dataType)) {
-				throw new CoreException("Data type is required to be filled");
-			}
-			paramDto.put(param, dataType);
-		}
-		generator.params = paramDto;
-		generator.packageTarget = packageService;
-		generator.generate(query);
-		scanner.close();
-		cacheDto.put("packageService", packageService);
-		cacheDto.put("packageEntity", packageEntity);
-		cacheDto.put("packageRepo", packageRepoName);
-		try {
-			mapper.writeValue(cacheFile, cacheDto);
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
 	}
 
 	public static void validatePackage(String input, String message) {

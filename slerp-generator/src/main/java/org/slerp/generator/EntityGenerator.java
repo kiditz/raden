@@ -48,7 +48,7 @@ public class EntityGenerator implements Generator {
 	public void generate(String tableName) {
 		JdbcTable table = connection.getTable(tableName);
 
-		String source = generateEntity(table);
+		JavaClassSource source = generateEntity(table);
 
 		File src = new File(srcDir, packageName.replace(".", "/").concat("/"));
 
@@ -60,14 +60,14 @@ public class EntityGenerator implements Generator {
 		FileWriter writer;
 		try {
 			writer = new FileWriter(fileToWrite);
-			System.out.println("Generator successfully create " + StringConverter.getFilename(fileToWrite));
-			writer.write(source);
+			writer.write(source.toString());
 			writer.close();
-			source = generateJoin(table.getColumns(), source);
+			source = generateJoin(table.getColumns(), source.toString());
 			writer = new FileWriter(fileToWrite);
-			writer.write(source);
+			writer.write(source.toString());
 			writer.close();
-			String repository = generateRepository(table);
+			System.out.println("Generated Successfully Created : " + source.getCanonicalName().concat(".java"));
+			JavaInterfaceSource repository = generateRepository(table);
 			File srcRepo = new File(srcDir, packageRepoName.replace(".", "/").concat("/"));
 			if (!srcRepo.isDirectory())
 				srcRepo.mkdirs();
@@ -75,16 +75,18 @@ public class EntityGenerator implements Generator {
 			fileToWrite = new File(srcRepo,
 					StringConverter.convertCaseSensitive(table.getTableName(), true) + "Repository".concat(".java"));
 			writer = new FileWriter(fileToWrite);
-			writer.write(repository);
+			writer.write(repository.toString());
 			writer.close();
+			System.out.println("Generated Successfully Created : " + repository.getCanonicalName().concat(".java"));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		System.out.println("Generator successfully create " + StringConverter.getFilename(fileToWrite));
+		// System.out.println("Generator successfully create " +
+		// StringConverter.getFilename(fileToWrite));
 
 	}
 
-	private String generateEntity(JdbcTable table) {
+	private JavaClassSource generateEntity(JdbcTable table) {
 
 		JavaClassSource cls = Roaster.create(JavaClassSource.class);
 		cls.setName(StringConverter.convertCaseSensitive(table.getTableName(), true)).setPublic();
@@ -218,10 +220,10 @@ public class EntityGenerator implements Generator {
 				cls.addImport("javax.persistence.TemporalType");
 			}
 		}
-		return cls.toString();
+		return cls;
 	}
 
-	private String generateJoin(List<JdbcColumn> columns, String src) {
+	private JavaClassSource generateJoin(List<JdbcColumn> columns, String src) {
 		JavaClassSource cls = Roaster.parse(JavaClassSource.class, src);
 		for (JdbcColumn column : columns) {
 			if (column.getForeignKeys() != null) {
@@ -229,6 +231,7 @@ public class EntityGenerator implements Generator {
 				String fkTableName = column.getForeignKeys().getString("fkTableName");
 				String pkColumnName = column.getForeignKeys().getString("pkColumnName");
 				String pkTableName = column.getForeignKeys().getString("pkTableName");
+
 				File referenceFile = new File(srcDir, packageName.replace(".", "/").concat("/")
 						.concat(StringConverter.convertCaseSensitive(pkTableName, true)).concat(".java"));
 
@@ -256,6 +259,8 @@ public class EntityGenerator implements Generator {
 						fkProperty.getField().addAnnotation("javax.persistence.OneToMany")
 								.setLiteralValue("cascade", "CascadeType.ALL").setStringValue("mappedBy", fkField);
 						refCls.addImport("javax.persistence.CascadeType");
+						refCls.addImport(packageName.concat(".")
+								.concat(StringConverter.convertCaseSensitive(fkTableName, true)));
 						FileWriter writer = new FileWriter(referenceFile);
 						writer.write(refCls.toString());
 						writer.close();
@@ -267,10 +272,10 @@ public class EntityGenerator implements Generator {
 
 			}
 		}
-		return cls.toString();
+		return cls;
 	}
 
-	private String generateRepository(JdbcTable table) {
+	private JavaInterfaceSource generateRepository(JdbcTable table) {
 		table = connection.getTable(table.getTableName());
 		String className = StringConverter.convertCaseSensitive(table.getTableName(), true);
 		JavaInterfaceSource iCls = Roaster.create(JavaInterfaceSource.class);
@@ -280,7 +285,7 @@ public class EntityGenerator implements Generator {
 		iCls.addInterface("org.springframework.data.jpa.repository.JpaRepository<"
 				+ packageName.concat(".").concat(className) + ", " + primaryKeyDataType.getName() + ">");
 
-		return iCls.toString();
+		return iCls;
 	}
 
 	public JdbcColumn getColumnByPK(List<JdbcColumn> columns) {
@@ -297,7 +302,7 @@ public class EntityGenerator implements Generator {
 
 	public static void main(String[] args) {
 		EntityGenerator generator = new EntityGenerator("src/main/resources/slerp.properties",
-				"org.slerp.ecomerce.entity", null, "/home/kiditz/apps/framework/slerp-ecomerce/src/main/java");
+				"org.slerp.ecomerce.entity", null, "/home/kiditz/apps/framework/slerp-ecommerce-service/src/main/java");
 
 		generator.generate("product");
 		generator.generate("category");

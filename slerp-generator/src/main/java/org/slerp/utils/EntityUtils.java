@@ -11,13 +11,13 @@ import org.jboss.forge.roaster.model.source.JavaClassSource;
 import org.slerp.core.Dto;
 
 public class EntityUtils {
-	static Dto input = new Dto();
+	static private Dto inputEntity = new Dto();
+	static private Dto inputBusiness = new Dto();
 
 	public static Dto readEntities(File baseDir) throws IOException {
-
 		File[] listFile = baseDir.listFiles();
 		if (listFile == null || listFile.length == 0)
-			return input;
+			return null;
 
 		for (File file : listFile) {
 			if (file.isDirectory()) {
@@ -26,15 +26,36 @@ public class EntityUtils {
 				if (StringConverter.getExtension(file).equals("java")) {
 					if (isEntity(file)) {
 						// Dto entityDto = new Dto();
-						input.put(StringConverter.getFilename(file), file.getAbsolutePath());
+						inputEntity.put(StringConverter.getFilename(file), file.getAbsolutePath());
 
 					}
 				}
 			}
 		}
-		return input;
+		return inputEntity;
 	}
-	
+
+	public static Dto readBusiness(File baseDir) throws IOException {
+		File[] listFile = baseDir.listFiles();
+		if (listFile == null || listFile.length == 0)
+			return null;
+		for (File file : listFile) {
+			if (file.isDirectory()) {
+				readBusiness(file);
+			} else {
+				if (StringConverter.getExtension(file).equals("java")) {
+					if (isBo(file)) {
+						// System.err.println("Path Entity Utils " +
+						// file.getAbsolutePath());
+
+						inputBusiness.put(StringConverter.getFilename(file), file.getAbsolutePath());
+					}
+				}
+			}
+		}
+		return inputBusiness;
+	}
+
 	private static boolean isEntity(File file) throws IOException {
 		try {
 			JavaClassSource cls = Roaster.parse(JavaClassSource.class, file);
@@ -44,6 +65,20 @@ public class EntityUtils {
 		} catch (Exception e) {
 		}
 		return false;
+	}
+
+	private static boolean isBo(File file) throws IOException {
+		try {
+			JavaClassSource cls = Roaster.parse(JavaClassSource.class, file);
+			if (cls.getSuperType().equals("org.slerp.core.business.DefaultBusinessTransaction")
+					|| cls.getSuperType().equals("org.slerp.core.business.DefaultBusinessFunction")) {
+				return true;
+			}
+		} catch (Exception e) {
+			return false;
+		}
+		return false;
+
 	}
 
 	public static Dto readEntityAsDto(File entityFile) throws IOException {
@@ -57,7 +92,6 @@ public class EntityUtils {
 			Dto fieldDto = new Dto();
 			fieldDto.put("fieldName", field.getName());
 			fieldDto.put("fieldType", field.getType().getQualifiedName());
-
 			if (field.hasAnnotation("javax.validation.constraints.NotNull")) {
 				fieldDto.put("isNull", false);
 			} else {
@@ -68,7 +102,9 @@ public class EntityUtils {
 			} else {
 				fieldDto.put("isPrimaryKey", false);
 			}
+
 			String fieldType = field.getType().getQualifiedName();
+
 			if (fieldType.equals("java.lang.String")) {
 				fieldDto.put("isString", true);
 			} else
@@ -96,7 +132,11 @@ public class EntityUtils {
 	}
 
 	public static void main(String[] args) throws IOException {
-		Dto input = EntityUtils.readEntities(new File("/home/kiditz/apps/framework/slerp-ecomerce/src/main/java/"));
-		System.err.println(input);
+		Dto input = EntityUtils
+				.readBusiness(new File("/home/kiditz/apps/framework/slerp-ecommerce-service/src/main/java/"));
+		System.err.println(input.toString());
+		for (Object obj : input.values()) {
+			System.err.println(obj);
+		}
 	}
 }

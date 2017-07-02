@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 import org.apache.maven.plugin.AbstractMojo;
@@ -18,20 +16,24 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 import org.slerp.core.CoreException;
 import org.slerp.core.Dto;
-import org.slerp.generator.TransactionGenerator;
+import org.slerp.generator.ApiGenerator;
+import org.slerp.generator.JUnitTestGenerator;
+import org.slerp.utils.JpaParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-@Mojo(name = "transaction", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
-public class TransactionGeneratorMojo extends AbstractMojo {
+@Mojo(name = "rest", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
+public class ApiGeneratorMojo extends AbstractMojo {
 	@Parameter(defaultValue = "${project.basedir}/src/main/resources/application.properties", property = "properties", required = true)
 	private File properties;
 	@Parameter(defaultValue = "${project.basedir}/src/main/java", property = "srcDir", required = true)
 	private File srcDir;
-	@Parameter(defaultValue = "${project.basedir}/src/main/resources", property = "srcDir", required = true)
+	@Parameter(defaultValue = "${project.basedir}/src/main/java", property = "apiDir", required = true)
+	private File apiDir;
+	@Parameter(defaultValue = "${project.basedir}/src/main/resources", property = "cacheDir", required = true)
 	private File cacheDir;
 	Logger log = LoggerFactory.getLogger(getClass());
 
@@ -41,7 +43,7 @@ public class TransactionGeneratorMojo extends AbstractMojo {
 			throw new RuntimeException("Cannot found configuration file at " + properties.getPath());
 
 		System.out.println("----------------------------------------------------------------------");
-		System.out.println("Transaction Generator");
+		System.out.println("Rest A.P.I Generator");
 		System.out.println("----------------------------------------------------------------------");
 		if (!cacheDir.isDirectory())
 			cacheDir.mkdirs();
@@ -55,7 +57,7 @@ public class TransactionGeneratorMojo extends AbstractMojo {
 		String cacheEnPackage = cacheDto.getString("packageEntity");
 		String cacheTgtPackage = cacheDto.getString("packageService");
 		String cacheRepPackage = cacheDto.getString("packageRepo");
-
+		String cacheConPackage = cacheDto.getString("packageController");
 		System.out.print("Package Entity" + (cacheEnPackage == null ? "" : "(" + cacheEnPackage + ")") + ": ");
 		Scanner scanner = new Scanner(System.in);
 		String packageEntity = scanner.nextLine();
@@ -88,77 +90,55 @@ public class TransactionGeneratorMojo extends AbstractMojo {
 		}
 
 		validatePackage(packageRepoName, "Package Repository is invalid");
+
+		System.out.print("Package Controller " + (cacheConPackage == null ? "" : "(" + cacheConPackage + ")") + ": ");
+		String packageController = scanner.nextLine();
+		if (StringUtils.isEmpty(packageController)) {
+			packageController = cacheConPackage;
+		}
+		if (StringUtils.isEmpty(packageController)) {
+			throw new CoreException("Package Controller is required to be filled");
+		}
+
+		validatePackage(packageController, "Package Entity is invalid");
+
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-		System.out.println("----------------------------------------------------------------------");
-		System.out.println("Transaction Type");
-		System.out.println("----------------------------------------------------------------------");
-		System.out.println("1. Add\n2. Edit\n3. Remove\n");
-		System.out.print("Choose : ");
-		int choosedType = scanner.nextInt();
-		String transactionMode = null;
-		switch (choosedType) {
-		case 1:
-			transactionMode = "Add";
-			break;
-		case 2:
-			transactionMode = "Edit";
-			break;
-		case 3:
-			transactionMode = "Remove";
-			break;
-		}
-
-		System.out.print("Enable Prepare (Y/N) : ");
-		boolean enablePrepare = true;
-		if (cacheDto.get("enablePrepare") != null)
-			enablePrepare = cacheDto.getBoolean("enablePrepare");
-
-		if (scanner.nextLine().equalsIgnoreCase("Y"))
-			enablePrepare = true;
-		else if (scanner.nextLine().equalsIgnoreCase("N"))
-			enablePrepare = false;
-		TransactionGenerator generator = new TransactionGenerator(transactionMode, packageEntity, packageRepoName,
-				packageService, srcDir, enablePrepare);
-		System.out.println("----------------------------------------------------------------------");
-		System.out.println("Found entity in project");
-		System.out.println("----------------------------------------------------------------------");
-		Dto entity;
+		ApiGenerator generator = new ApiGenerator(apiDir.getAbsolutePath(), srcDir.getAbsolutePath(), packageEntity,
+				packageRepoName, packageService, packageController);
 		try {
-			entity = generator.getEntity();
-			int index = 0;
-			for (Object element : entity.keySet()) {
-				System.out.println((index + 1) + ". " + element);
-				++index;
+			generator.parse();
+			System.out.println("----------------------------------------------------------------------");
+			System.out.println("Found Service in project");
+			System.out.println("----------------------------------------------------------------------");
+			for (int i = 0; i < generator.getParsers().size(); i++) {
+				JpaParser parser = generator.getParsers().get(i);
+				System.out.println((i + 1) + ". " + parser.getService().getString("className"));
+				System.out.println("----------------------------------------------------------------------");
+				for (Dto field : parser.getFields()) {
+					if (field.getString("fieldType").equals("java.lang.Object")) {
+						System.out.print("Data type for (" + field.getString("fieldName") + ") : ");
+						String type = scanner.nextLine();
+						field.put("fieldType", JUnitTestGenerator.primitivType.get(type));
+					}
+				}
+			}
+			scanner.close();
+			generator.generate();
+			System.out.println("At " + apiDir.getAbsolutePath());
+
+			cacheDto.put("packageEntity", packageEntity);
+			cacheDto.put("packageService", packageService);
+			cacheDto.put("packageRepo", packageRepoName);
+			cacheDto.put("packageController", packageController);
+			try {
+				mapper.writeValue(cacheFile, cacheDto);
+			} catch (IOException e1) {
+				e1.printStackTrace();
 			}
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		System.out.print("Entity Name : ");
-		String inputEntity = scanner.nextLine();
-		if (StringUtils.isEmpty(inputEntity))
-			throw new CoreException("Entity name should be filled");
-		List<String> inputTemp = new ArrayList<>();
-		if (inputEntity.contains(",")) {
-			String[] temps = inputEntity.split(",");
-			for (String temp : temps) {
-				inputTemp.add(temp.trim());
-			}
-		} else {
-			inputTemp.add(inputEntity);
-		}
-		System.out.println("Will be generated " + inputTemp);
-		for (String entityName : inputTemp) {
-			generator.generate(entityName);
-		}
-		cacheDto.put("packageEntity", packageEntity);
-		cacheDto.put("packageService", packageService);
-		cacheDto.put("packageRepo", packageRepoName);
-		cacheDto.put("enablePrepare", enablePrepare);
-		try {
-			mapper.writeValue(cacheFile, cacheDto);
-		} catch (IOException e1) {
-			e1.printStackTrace();
 		}
 	}
 

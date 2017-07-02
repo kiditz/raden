@@ -27,7 +27,7 @@ public class FunctionGenerator implements Generator {
 	private String methodName;
 	public Dto params = new Dto();
 	private String query = "";
-	private boolean list;
+	public FunctionType type;
 
 	public FunctionGenerator(String packageName, String packageRepoName, String srcDir, String methodName) {
 		this.packageName = packageName;
@@ -36,14 +36,6 @@ public class FunctionGenerator implements Generator {
 			packageTarget = packageRepoName;
 		this.methodName = methodName;
 		this.srcDir = srcDir;
-	}
-
-	public boolean isList() {
-		return list;
-	}
-
-	public void setList(boolean list) {
-		this.list = list;
 	}
 
 	public void setQuery(String query) {
@@ -73,14 +65,20 @@ public class FunctionGenerator implements Generator {
 			}
 			MethodSource<JavaInterfaceSource> method = null;
 
-			if (isList()) {
+			if (type == FunctionType.LIST) {
 				method = inf.addMethod().setName(methodName)
-						.setReturnType("java.util.List<" + packageName.concat(".").concat(className) + ">").setPublic();
-			} else {
+						.setReturnType("List<" + packageName.concat(".").concat(className) + ">").setPublic();
+				inf.addImport(List.class);
+			} else if (type == FunctionType.SINGLE) {
 				method = inf.addMethod().setName(methodName).setReturnType(packageName.concat(".").concat(className))
 						.setPublic();
+			} else {
+				method = inf.addMethod().setName(methodName)
+						.setReturnType("Page<" + packageName.concat(".").concat(className) + ">").setPublic();
+				inf.addImport("org.springframework.data.domain.Page");
+				inf.addImport("org.springframework.data.domain.Pageable");
 			}
-			String[] keyValidationValues = new String[params.size()];
+			String[] keyValidationValues = new String[type == FunctionType.PAGE ? params.size() + 2 : params.size()];
 			int i = 0;
 			for (Entry<Object, Object> entry : params.entrySet()) {
 				keyValidationValues[i] = entry.getKey().toString();
@@ -89,9 +87,12 @@ public class FunctionGenerator implements Generator {
 						.setStringValue(entry.getKey().toString());
 				i++;
 			}
-
+			if (type == FunctionType.PAGE) {
+				keyValidationValues[i++] = "page";
+				keyValidationValues[i++] = "size";
+				method.addParameter("Pageable", "pageable");
+			}
 			method.addAnnotation("org.springframework.data.jpa.repository.Query").setStringValue(getQuery());
-
 			FileWriter writer = new FileWriter(repositoryFile);
 			writer.write(inf.toString());
 			writer.close();
@@ -105,38 +106,81 @@ public class FunctionGenerator implements Generator {
 			clsMethod.setPublic();
 			clsMethod.setReturnType(Dto.class);
 			String methodParam = Strings.uncapitalize(getReturnByQuery()).concat("Dto");
-			clsMethod.addParameter(Dto.class, methodParam);
+			clsMethod.addParameter("Dto", methodParam);
+			cls.addImport(Dto.class);
 			StringBuffer buffer = new StringBuffer();
 			String repoName = Strings.uncapitalize(StringConverter.getFilename(repositoryFile));
 			cls.addField().setName(repoName)
 					.setType(packageRepoName.concat(".").concat(StringConverter.getFilename(repositoryFile)))
 					.addAnnotation("org.springframework.beans.factory.annotation.Autowired");
+			String var = Strings.uncapitalize(className);
+			if (!params.isEmpty()) {
+				for (Entry<Object, Object> entry : params.entrySet()) {
+					if (type == FunctionType.LIST) {
+						buffer.append("List".concat("<").concat(className).concat(">")).append(" ")
+								.append(var.concat("List"));
+						buffer.append(" = ").append(repoName.concat(".").concat(methodName));
+						buffer.append("(").append(var.concat("Dto").concat(".get").concat(entry.getValue().toString())
+								.concat("(\"").concat(entry.getKey().toString()).concat("\")")).append(");\n");
+						buffer.append(
+								"return new Dto().put(\"" + var.concat("List") + "\", " + var.concat("List") + ");");
+						cls.addImport(List.class);
+					} else if (type == FunctionType.SINGLE) {
 
-			for (Entry<Object, Object> entry : params.entrySet()) {
-				if (isList()) {
-					String var = Strings.uncapitalize(className);
-					buffer.append("java.util.List".concat("<").concat(className).concat(">")).append(" ")
+						buffer.append(className).append(" ").append(var);
+						buffer.append(" = ").append(repoName.concat(".").concat(methodName));
+						buffer.append("(").append(var.concat("Dto").concat(".get").concat(entry.getValue().toString())
+								.concat("(\"").concat(entry.getKey().toString()).concat("\")")).append(");\n");
+						buffer.append("return new Dto().put(\"" + var + "\", " + var + ");");
+					} else {
+						buffer.append("int page = " + var.concat("Dto") + ".getInt(\"page\");");
+						buffer.append("int size = " + var.concat("Dto") + ".getInt(\"size\");");
+						buffer.append("Page".concat("<").concat(className).concat(">")).append(" ")
+								.append(var.concat("Page"));
+						buffer.append(" = ").append(repoName.concat(".").concat(methodName));
+						buffer.append("(")
+								.append(var.concat("Dto").concat(".get").concat(entry.getValue().toString())
+										.concat("(\"").concat(entry.getKey().toString()).concat("\")").concat(", ")
+										.concat("new PageRequest(page, size)"))
+								.append(");\n");
+						buffer.append(
+								"return new Dto().put(\"" + var.concat("Page") + "\", " + var.concat("Page") + ");");
+						cls.addImport("org.springframework.data.domain.Page");
+						cls.addImport("org.springframework.data.domain.PageRequest");
+						method.addParameter("Pageable", "pageable");
+					}
+				}
+			} else {
+				if (type == FunctionType.LIST) {
+					buffer.append("List".concat("<").concat(className).concat(">")).append(" ")
 							.append(var.concat("List"));
-					buffer.append(" = ").append(repoName.concat(".").concat(methodName));
-					buffer.append("(").append(var.concat("Dto").concat(".get").concat(entry.getValue().toString())
-							.concat("(\"").concat(entry.getKey().toString()).concat("\")")).append(");\n");
-					buffer.append("return new Dto().put(\"" + var.concat("List") + "\", " + var.concat("List") + ");");
-				} else {
-					String var = Strings.uncapitalize(className);
+					buffer.append(" = ").append(repoName.concat(".").concat(methodName)).append("();\n");
+					buffer.append("return new Dto(" + var.concat("List") + ");");
+					cls.addImport(List.class);
+				} else if (type == FunctionType.SINGLE) {
 					buffer.append(className).append(" ").append(var);
-					buffer.append(" = ").append(repoName.concat(".").concat(methodName));
-					buffer.append("(").append(var.concat("Dto").concat(".get").concat(entry.getValue().toString())
-							.concat("(\"").concat(entry.getKey().toString()).concat("\")")).append(");\n");
-					buffer.append("return new Dto().put(\"" + var + "\", " + var + ");");
+					buffer.append(" = ").append(repoName.concat(".").concat(methodName)).append("();\n");
+					buffer.append("return new Dto(" + var + ");");
+				} else {
+					buffer.append("int page = " + var.concat("Dto") + ".getInt(\"page\");");
+					buffer.append("int size = " + var.concat("Dto") + ".getInt(\"size\");");
+					buffer.append("Page".concat("<").concat(className).concat(">")).append(" ")
+							.append(var.concat("Page"));
+					buffer.append(" = ").append(repoName.concat(".").concat(methodName))
+							.append("(new PageRequest(page, size));\n");
+					buffer.append("return new Dto(" + var.concat("Page") + ");");
+					cls.addImport("org.springframework.data.domain.Page");
+					cls.addImport("org.springframework.data.domain.PageRequest");
 				}
 			}
-			// System.err.println(buffer.toString());
+
+			clsMethod.addAnnotation(Override.class);
 			clsMethod.setBody(buffer.toString());
 			writer = new FileWriter(new File(srcDir, packageTarget.replace(".", "/").concat("/")
 					.concat(Strings.capitalize(methodName)).concat(".java")));
 			writer.write(cls.toString());
 			writer.close();
-			System.err.println("Generated Successfully : " + Strings.capitalize(methodName));
+			System.err.println("Generated Successfully Created : " + cls.getCanonicalName().concat(".java"));
 		} catch (IOException e) {
 			throw new CoreException("Cannot find file " + repositoryFile.getName() + " in package " + packageRepoName
 					+ " error : " + e);
@@ -147,7 +191,7 @@ public class FunctionGenerator implements Generator {
 		return EntityUtils.readEntities(new File(srcDir));
 	}
 
-	public static List<String> getParamsByQuery(String query) {
+	public List<String> getParamsByQuery(String query) {
 		String[] split = query.split(" ");
 		List<String> params = new ArrayList<String>();
 		for (String q : split) {
@@ -155,6 +199,11 @@ public class FunctionGenerator implements Generator {
 				params.add(q.replace(":", "").trim());
 			}
 		}
+		// if (type == FunctionType.PAGE) {
+		// params.add("page");
+		// params.add("size");
+		// }
+		System.err.println(params);
 		return params;
 	}
 
@@ -171,25 +220,27 @@ public class FunctionGenerator implements Generator {
 	public static void main(String[] args) {
 		FunctionGenerator generator = new FunctionGenerator("org.slerp.ecommerce.entity",
 				"org.slerp.ecommerce.repository", "/home/kiditz/apps/framework/slerp-ecommerce-service/src/main/java/",
-				"findProductByProductName");
-		String query = "SELECT p FROM Product p WHERE p.productName = :productName";
+				"getProduct");
+		generator.packageTarget = "org.slerp.ecommerce.service.product";
+		String query = "SELECT p FROM Product p";
+		generator.type = FunctionType.PAGE;
+		List<String> params = generator.getParamsByQuery(query);
 
-		List<String> params = getParamsByQuery(query);
 		Dto paramDto = new Dto();
 		Scanner scanner = new Scanner(System.in);
 		for (String param : params) {
 			System.out.print("Type for " + param + " : ");
 			String type = scanner.nextLine();
-			paramDto.put(param, type);
+			paramDto.put(param, JUnitTestGenerator.primitivType.get(type));
 		}
 		generator.params = paramDto;
-		System.out.print("Is List (Y / N):");
-		boolean isList = scanner.nextLine().equalsIgnoreCase("Y") ? true : false;
-
 		System.out.println();
-		generator.setList(isList);
+
 		generator.generate(query);
 		scanner.close();
 	}
 
+	static public enum FunctionType {
+		PAGE, SINGLE, LIST
+	}
 }

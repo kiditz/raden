@@ -32,7 +32,7 @@ public class EntityGeneratorMojo extends AbstractMojo {
 	private File properties;
 	@Parameter(defaultValue = "${project.basedir}/src/main/java", property = "srcDir", required = true)
 	private File srcDir;
-	@Parameter(defaultValue = "${project.basedir}/src/main/resources", property = "srcDir", required = true)
+	@Parameter(defaultValue = "${project.basedir}/src/main/resources", property = "cacheDir", required = true)
 	private File cacheDir;
 	Logger log = LoggerFactory.getLogger(getClass());
 

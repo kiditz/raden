@@ -5,6 +5,8 @@ import java.util.Properties;
 import org.slerp.core.CoreException;
 
 public interface Generator {
+	
+	
 	public void generate(String tableName);
 
 	static public class TypeConverter {
@@ -30,13 +32,14 @@ public interface Generator {
 				properties.put("date", "java.util.Date");
 				properties.put("time", "java.util.Date");
 				properties.put("boolean", "java.lang.Boolean");
+				properties.put("bool", "java.lang.Boolean");
 			} catch (Exception e) {
 				throw new CoreException(e);
 			}
 		}
 
 		public static Class<?> convert(String sqlType) {
-			// System.err.println("Sql Type " + sqlType);
+			//System.err.println("Sql Type " + sqlType);
 
 			try {
 				if (properties.getProperty(sqlType) != null)

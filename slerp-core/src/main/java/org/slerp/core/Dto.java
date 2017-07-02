@@ -5,10 +5,10 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,7 +18,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 public class Dto implements Map<Object, Object> {
-	private Map<Object, Object> map = new LinkedHashMap<Object, Object>();
+	// Use Concurrent HashMap for thread safe
+	private Map<Object, Object> map = new ConcurrentHashMap<Object, Object>();
 	private static final ObjectMapper jsonMapper = new ObjectMapper();
 	static {
 		jsonMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
@@ -134,14 +135,28 @@ public class Dto implements Map<Object, Object> {
 		return map.values();
 	}
 
+	@Override
 	public Set<java.util.Map.Entry<Object, Object>> entrySet() {
-		return map.entrySet();
+		return this.map.entrySet();
 	}
 
 	public List<Dto> getList(String key) {
 		try {
 			String result = jsonMapper.writeValueAsString(this.map.get(key));
 			List<Dto> dtoList = jsonMapper.readValue(result, new TypeReference<List<Dto>>() {
+			});
+			return dtoList;
+		} catch (JsonProcessingException e) {
+			throw new CoreException(e);
+		} catch (IOException e) {
+			throw new CoreException(e);
+		}
+	}
+
+	public Set<Dto> getSet(String key) {
+		try {
+			String result = jsonMapper.writeValueAsString(this.map.get(key));
+			Set<Dto> dtoList = jsonMapper.readValue(result, new TypeReference<Set<Dto>>() {
 			});
 			return dtoList;
 		} catch (JsonProcessingException e) {
@@ -184,4 +199,5 @@ public class Dto implements Map<Object, Object> {
 			throw new CoreException(e);
 		}
 	}
+
 }
