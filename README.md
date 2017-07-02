@@ -1,6 +1,6 @@
 # Slerp 
 
-Slerp is a maven plugin to generate code for spring project within simple input to make you faster
+Slerp is a maven plugin to generate jpa code for spring project within simple input to make you faster than before
 
 ## Introduction
 
