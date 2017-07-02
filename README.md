@@ -197,7 +197,8 @@ public interface UserPrincipalRepository extends JpaRepository<UserPrincipal, Lo
 
 ### Transaction
 
-The ```mvn slerp:transaction``` can be generate code with spring @Service and @Transactional it can be generated code for transaction type :
+The ```mvn slerp:transaction``` will be generate code with annotation spring @Service and @Transactional with 
+transaction type : 
 * [Add] - To save data into database
 * [Edit] - To update data from database
 * [Remove] - To remove data from database
