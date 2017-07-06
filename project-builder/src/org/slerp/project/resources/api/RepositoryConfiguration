@@ -1,0 +1,17 @@
+package ${GROUP_ID};
+
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+@Configuration
+@EnableAutoConfiguration
+@EntityScan(basePackages = { "${GROUP_ID}.entity" })
+@EnableJpaRepositories(basePackages = { "${GROUP_ID}.repository" })
+@EnableTransactionManagement
+@ComponentScan("${GROUP_ID}.service")
+public class RepositoryConfiguration {
+}

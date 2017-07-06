@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.slerp</groupId>
 		<artifactId>slerp-dependencies</artifactId>
-		<version>1.0-SNAPSHOT</version>
+		<version>${SLERP-VERSION}</version>		
 	</parent>
 	<groupId>${GROUP_ID}</groupId>
 	<version>${VERSION}</version>
@@ -46,7 +46,7 @@
 		<dependency>
 			<groupId>org.slerp</groupId>
 			<artifactId>slerp-base</artifactId>
-			<scope>provided</scope>
+			<scope>provided</scope>			
 		</dependency>
 		<!-- JACKSON -->
 		<dependency>
