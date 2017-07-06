@@ -1,0 +1,2 @@
+slerp.version = 1.0-SNAPSHOT
+spring.version = 1.4.7-RELEASE
