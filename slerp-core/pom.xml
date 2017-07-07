@@ -4,7 +4,7 @@
 	<groupId>org.slerp</groupId>
 	<artifactId>slerp-core</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>slerp-core</name>
 	<url>http://maven.apache.org</url>
 	<properties>

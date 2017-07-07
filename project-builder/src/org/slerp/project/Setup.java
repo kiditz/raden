@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Setup {
-	static enum ProjectType {
+	public static enum ProjectType {
 		SERVICE, API, DISCOVERY,
 	};
 

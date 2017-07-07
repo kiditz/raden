@@ -3,7 +3,7 @@
 	To include a user specific buildfile here, simply create one in the same 
 	directory with the processing instruction <?eclipse.ant.import?> as the first 
 	entry and export the buildfile again. -->
-<project basedir="." default="build" name="project-builder">
+<project basedir="." default="jar" name="project-builder">
 	<property environment="env" />
 	<property name="ECLIPSE_HOME" value="../../../apps/eclipse/" />
 	<property name="debuglevel" value="source,lines,vars" />
@@ -46,8 +46,7 @@
 			<classpath refid="project-builder.classpath" />
 		</java>
 	</target>
-	<target name="jar" depends="build-project">
-		<mkdir dir="${jar.dir}" />
+	<target name="jar" depends="build-project">		
 		<jar destfile="lib/project-builder.jar" basedir="bin">
 			<manifest>
 				<attribute name="Main-Class" value="org.slerp.project.Setup" />

@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.slerp</groupId>
 		<artifactId>slerp-dependencies</artifactId>
-		<version>1.0-SNAPSHOT</version>
+		<version>1.0.0</version>
 	</parent>
 	<groupId>org.slerp.plugin</groupId>
 	<artifactId>slerp-maven-plugin</artifactId>
@@ -55,7 +55,7 @@
 		<dependency>
 			<groupId>org.slerp</groupId>
 			<artifactId>slerp-generator</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>1.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.postgresql</groupId>

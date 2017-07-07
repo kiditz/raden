@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.slerp</groupId>
 		<artifactId>slerp-dependencies</artifactId>
-		<version>1.0-SNAPSHOT</version>
+		<version>1.0.0</version>
 	</parent>
 	<properties>
 		<version.roaster>2.20.0.Final</version.roaster>

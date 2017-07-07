@@ -110,10 +110,9 @@ public class ProjectWizard extends Wizard implements INewWizard {
 		try {
 			System.err.println(configuration.outputDir);
 			validateInput(configuration);
-			Setup.execute(configuration);
+			Setup.execute(configuration, page.getProjectType());
 			root.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 			project.open(monitor);
-					
 
 		} catch (Exception e) {
 			e.printStackTrace();

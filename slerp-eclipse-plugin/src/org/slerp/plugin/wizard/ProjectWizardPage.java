@@ -4,17 +4,22 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.dialogs.IDialogPage;
+import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.slerp.plugin.wizard.utils.EditMask;
 import org.slerp.project.Setup.Configuration;
+import org.slerp.project.Setup.ProjectType;
 
 /**
  * The "New Service" wizard page allows you to generate project
@@ -32,6 +37,8 @@ public class ProjectWizardPage extends WizardPage {
 
 	private Configuration configuration = new Configuration();
 
+	private ProjectType projectType;
+
 	/**
 	 * Constructor for SampleNewWizardPage.
 	 * 
@@ -48,7 +55,7 @@ public class ProjectWizardPage extends WizardPage {
 	 * @see IDialogPage#createControl(Composite)
 	 */
 	public void createControl(Composite parent) {
-		Composite container = new Composite(parent, SWT.NULL);		
+		Composite container = new Composite(parent, SWT.NULL);
 		GridLayout layout = new GridLayout();
 		container.setLayout(layout);
 		layout.numColumns = 2;
@@ -65,6 +72,30 @@ public class ProjectWizardPage extends WizardPage {
 		txtVersion.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		EditMask mask = new EditMask(txtVersion);
 		mask.setMask("#.#.#-nnnnnnnn");
+		Composite composite = new Composite(container, SWT.NONE);
+		GridData gd = new GridData(SWT.CENTER, SWT.FILL, true, true);
+		gd.horizontalSpan = 2;
+		composite.setLayoutData(gd);
+		composite.setLayout(GridLayoutFactory.fillDefaults().numColumns(3).spacing(0, 9).create());
+		Button btnService = new Button(composite, SWT.RADIO);
+		btnService.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+		btnService.setText("Service");
+		btnService.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				projectType = ProjectType.SERVICE;
+			}
+		});
+		Button btnApi = new Button(composite, SWT.RADIO);
+		btnApi.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+		btnApi.setText("Api");
+		btnApi.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				projectType = ProjectType.API;
+			}
+		});
+
 		initialize();
 		setControl(container);
 
@@ -86,7 +117,11 @@ public class ProjectWizardPage extends WizardPage {
 	private void initialize() {
 		configuration.artifactId = txtArtifactId.getText();
 		configuration.groupId = txtGroupId.getText();
-		configuration.outputDir = ResourcesPlugin.getWorkspace().getRoot().getLocation().toOSString();
+		try {
+			configuration.outputDir = ResourcesPlugin.getWorkspace().getRoot().getLocation().toOSString();
+		} catch (Exception e) {
+		}
+
 		configuration.version = txtVersion.getText();
 		txtGroupId.addModifyListener(evt -> {
 			validatePackage(txtGroupId.getText());
@@ -134,5 +169,9 @@ public class ProjectWizardPage extends WizardPage {
 
 	public Configuration getConfiguration() {
 		return configuration;
+	}
+
+	public ProjectType getProjectType() {
+		return projectType;
 	}
 }

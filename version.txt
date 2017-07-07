@@ -1,2 +1,2 @@
-slerp.version = 1.0-SNAPSHOT
-spring.version = 1.4.7-RELEASE
+slerp.version = 1.0.0
+spring.version = 1.4.7.RELEASE

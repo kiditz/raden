@@ -4,12 +4,12 @@
 	<groupId>org.slerp</groupId>
 	<artifactId>slerp-dependencies</artifactId>
 	<packaging>pom</packaging>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>slerp-dependencies</name>
 	<url>http://maven.apache.org</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<slerp.version>1.0-SNAPSHOT</slerp.version>
+		<slerp.version>1.0.0</slerp.version>
 		<activemq.version>5.13.4</activemq.version>
 		<antlr2.version>2.7.7</antlr2.version>
 		<appengine.version>1.9.44</appengine.version>
