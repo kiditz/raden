@@ -29,6 +29,7 @@ public class EntityGenerator implements Generator {
 	public String packageRepoName;
 	public String srcDir;
 	private JdbcConnection connection;
+	private File fileToWrite;
 
 	public EntityGenerator(String settingPath, String packageName, String packageRepoName, String srcDir) {
 		this.connection = new JdbcConnection(settingPath);
@@ -51,12 +52,9 @@ public class EntityGenerator implements Generator {
 		JavaClassSource source = generateEntity(table);
 
 		File src = new File(srcDir, packageName.replace(".", "/").concat("/"));
-
 		if (!src.isDirectory())
 			src.mkdirs();
-
-		File fileToWrite = new File(src,
-				StringConverter.convertCaseSensitive(table.getTableName(), true).concat(".java"));
+		fileToWrite = new File(src, StringConverter.convertCaseSensitive(table.getTableName(), true).concat(".java"));
 		FileWriter writer;
 		try {
 			writer = new FileWriter(fileToWrite);
@@ -298,6 +296,10 @@ public class EntityGenerator implements Generator {
 
 	public JdbcConnection getConnection() {
 		return connection;
+	}
+
+	public File getFileToWrite() {
+		return fileToWrite;
 	}
 
 	public static void main(String[] args) {

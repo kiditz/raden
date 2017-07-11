@@ -34,6 +34,7 @@ public class JUnitTestGenerator {
 	private File businessFile;
 	private Dto parseResult;
 	private Dto business;
+	private File outputFile;
 	public static Map<String, String> primitivType = new HashMap<>();
 	static {
 		primitivType.put("int", "java.lang.Integer");
@@ -46,9 +47,10 @@ public class JUnitTestGenerator {
 		primitivType.put("long", "java.lang.Long");
 		primitivType.put("Short", "java.lang.Short");
 		primitivType.put("short", "java.lang.Short");
-		primitivType.put("BigDecimal", "java.math.Short");
+		primitivType.put("BigDecimal", "java.math.BigDecimal");
 		primitivType.put("date", "java.util.Date");
 		primitivType.put("Date", "java.util.Date");
+		primitivType.put("String", "java.lang.String");
 
 	}
 
@@ -159,7 +161,6 @@ public class JUnitTestGenerator {
 			if (field == null)
 				continue;
 			String name = field.getString("fieldName");
-			// Assertions.assertThat(productDto.get("productName")).isEqualTo(productName);
 			if (!field.getBoolean("isJoin"))
 				buffer.append(
 						"Assertions.assertThat(" + defaultDto + ".get(\"" + name + "\")).isEqualTo(" + name + ");");
@@ -171,8 +172,7 @@ public class JUnitTestGenerator {
 		outputDirStr = outputDirStr.replaceAll("main", "test");
 		String outputDirStrResources = outputDirStr.replaceAll("java", "resources");
 		File outputDir = new File(outputDirStr);
-		File outputFile = new File(outputDir,
-				packageName.replace(".", "/").concat("/").concat(className).concat(".java"));
+		outputFile = new File(outputDir, packageName.replace(".", "/").concat("/").concat(className).concat(".java"));
 		if (!outputFile.getParentFile().isDirectory())
 			outputFile.getParentFile().mkdirs();
 		try {
@@ -280,10 +280,27 @@ public class JUnitTestGenerator {
 			field.put("fieldType", dataType);
 			field.put("value", value);
 		}
+		
 
 	}
 
 	public Set<Dto> getFields() {
 		return parser.getFields();
+	}
+
+	public void setFields(Set<Dto> fields) {
+		parser.setFields(fields);
+	}
+
+	public JpaParser getParser() {
+		return parser;
+	}
+
+	public void setParseResult(Dto parseResult) {
+		this.parseResult = parseResult;
+	}
+
+	public File getOutputFile() {
+		return outputFile;
 	}
 }

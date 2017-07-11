@@ -24,14 +24,8 @@ import org.slerp.project.Setup;
 import org.slerp.project.Setup.Configuration;
 
 /**
- * This is a sample new wizard. Its role is to create a new file resource in the
- * provided container. If the container resource (a folder or a project) is
- * selected in the workspace when the wizard is opened, it will accept it as the
- * target container. The wizard creates one file with the extension "mpe". If a
- * sample multi-page editor (also available as a template) is registered for the
- * same extension, it will be able to open it.
+ * The Project Generator Will be generate maven project for spring boot
  */
-
 public class ProjectWizard extends Wizard implements INewWizard {
 	private ProjectWizardPage page;
 	private ISelection selection;
@@ -95,7 +89,6 @@ public class ProjectWizard extends Wizard implements INewWizard {
 		// create a sample file
 		Configuration configuration = page.getConfiguration();
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-
 		IProject project = root.getProject(configuration.artifactId);
 
 		try {
@@ -112,8 +105,11 @@ public class ProjectWizard extends Wizard implements INewWizard {
 			validateInput(configuration);
 			Setup.execute(configuration, page.getProjectType());
 			root.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+			// FIXME : i am not automaticly created maven project
+			// programmatticly and should
+			// be converted by menu configure->convert to maven project in
+			// eclipse
 			project.open(monitor);
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
