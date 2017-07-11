@@ -101,7 +101,6 @@ public class FunctionGeneratorMojo extends AbstractMojo {
 
 		FunctionGenerator generator = new FunctionGenerator(packageEntity, packageRepoName, srcDir.getAbsolutePath(),
 				methodName);
-
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
 		FunctionType[] types = FunctionType.values();
@@ -126,7 +125,7 @@ public class FunctionGeneratorMojo extends AbstractMojo {
 		}
 		generator.type = type;
 		
-		List<String> params = generator.getParamsByQuery(query);
+		List<String> params = FunctionGenerator.getParamsByQuery(query);
 		Dto paramDto = new Dto();
 		for (String param : params) {
 			System.out.print("Data Type for " + param + " : ");

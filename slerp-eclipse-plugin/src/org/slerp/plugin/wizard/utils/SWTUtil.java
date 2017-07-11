@@ -11,10 +11,14 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.bindings.keys.KeyStroke;
+import org.eclipse.jface.fieldassist.ComboContentAdapter;
 import org.eclipse.jface.fieldassist.ContentProposalAdapter;
 import org.eclipse.jface.fieldassist.SimpleContentProposalProvider;
 import org.eclipse.jface.fieldassist.TextContentAdapter;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Text;
 
@@ -153,20 +157,44 @@ public class SWTUtil {
 		return result;
 	}
 
-	private static String KEY_PRESS = "Ctrl+Space";
+	// private static String KEY_PRESS = "Ctrl+Space";
 
-	public static void setAutoCompletion(Text text, String value, String[] proposals) {
-		try {
-			ContentProposalAdapter adapter = null;
-
-			SimpleContentProposalProvider scp = new SimpleContentProposalProvider(proposals);
-			scp.setProposals(proposals);
-			KeyStroke ks = KeyStroke.getInstance(KEY_PRESS);
-			adapter = new ContentProposalAdapter(text, new TextContentAdapter(), scp, ks, null);
-			adapter.setProposalAcceptanceStyle(ContentProposalAdapter.PROPOSAL_REPLACE);
-		} catch (Exception e) {
-			e.printStackTrace();
+	public static void setAutoCompletion(Control control, String[] items) {
+		SimpleContentProposalProvider proposalProvider = null;
+		ContentProposalAdapter proposalAdapter = null;
+		if (control instanceof Combo) {
+			Combo combo = (Combo) control;
+			proposalProvider = new SimpleContentProposalProvider(combo.getItems());
+			proposalAdapter = new ContentProposalAdapter(combo, new ComboContentAdapter(), proposalProvider,
+					getActivationKeystroke(), getAutoactivationChars());
+		} else if (control instanceof Text) {
+			Text text = (Text) control;
+			proposalProvider = new SimpleContentProposalProvider(items);
+			proposalAdapter = new ContentProposalAdapter(text, new TextContentAdapter(), proposalProvider,
+					getActivationKeystroke(), getAutoactivationChars());
 		}
+		proposalProvider.setFiltering(true);
+		proposalAdapter.setPropagateKeys(true);
+		proposalAdapter.setProposalAcceptanceStyle(ContentProposalAdapter.PROPOSAL_REPLACE);
+
+	}
+
+	private static final String LCL = "abcdefghijklmnopqrstuvwxyz";
+	private static final String UCL = LCL.toUpperCase();
+	private static final String NUMS = "0123456789";
+
+	private static char[] getAutoactivationChars() {
+
+		// To enable content proposal on deleting a char
+
+		String delete = new String(new char[] { 8 });
+		String allChars = LCL + UCL + NUMS + delete;
+		return allChars.toCharArray();
+	}
+
+	private static KeyStroke getActivationKeystroke() {
+		KeyStroke instance = KeyStroke.getInstance(new Integer(SWT.CTRL).intValue(), new Integer(' ').intValue());
+		return instance;
 	}
 
 	public static List<IJavaProject> getJavaProjects(IWorkspaceRoot root) {

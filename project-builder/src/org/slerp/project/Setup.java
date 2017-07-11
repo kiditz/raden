@@ -20,14 +20,15 @@ public class Setup {
 		String packageDir = configuration.groupId.replace('.', '/');
 		Project project = new Project();
 
-		project.files
-				.add(new ProjectFile("service/Application", "src/main/java/" + packageDir + "/Application.java", true));
 		if (type == ProjectType.SERVICE) {
+			project.files.add(
+					new ProjectFile("service/Application", "src/main/java/" + packageDir + "/Application.java", true));
 			project.files.add(new ProjectFile("service/pom.xml", "pom.xml", true));
 			project.files.add(new ProjectFile("src/main/resources/readme.txt"));
 			project.files.add(new ProjectFile("src/test/resources/application.properties", false));
 			project.files.add(new ProjectFile("src/test/resources/applicationContext.xml"));
 			project.files.add(new ProjectFile("src/test/resources/applicationContext-persistence.xml"));
+			project.files.add(new ProjectFile("src/main/resources/generator.cache"));
 			// Entity Dir
 			File entityDir = new File(configuration.outputDir,
 					"src/main/java/" + packageDir.concat("/").concat("entity"));
@@ -61,16 +62,21 @@ public class Setup {
 		if (!outVersion.getParentFile().isDirectory())
 			outVersion.getParentFile().mkdirs();
 		if (!outVersion.exists()) {
-			FileSetup.writeFile(outVersion, "slerp.version=1.0-SNAPSHOT\nspring.version=1.4.7-RELEASE".getBytes());
+			FileSetup.writeFile(outVersion, "slerp.version=1.0.0\nspring.version=1.4.7.RELEASE".getBytes());
 		}
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(outVersion)));
 			Map<String, String> existVersion = convertToMap(reader);
 			Map<String, String> netVersion = getProductVersionFromNet(10000);
-			if (netVersion == null)
-				netVersion = existVersion;
-			values.put("${SPRING-VERSION}", netVersion.get("spring.version"));
-			values.put("${SLERP-VERSION}", netVersion.get("slerp.version"));
+			if (netVersion != null) {
+				values.put("${SPRING-VERSION}", netVersion.get("spring.version"));
+				values.put("${SLERP-VERSION}", netVersion.get("slerp.version"));
+				FileSetup.writeFile(outVersion, "slerp.version=" + netVersion.get("slerp.version") + "\nspring.version="
+						+ netVersion.get("spring.version").getBytes());
+			} else {
+				values.put("${SPRING-VERSION}", existVersion.get("spring.version"));
+				values.put("${SLERP-VERSION}", existVersion.get("slerp.version"));
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -78,9 +84,11 @@ public class Setup {
 	}
 
 	private static Map<String, String> convertToMap(BufferedReader reader) throws IOException {
+		if (reader == null)
+			return null;
 		Map<String, String> map = new HashMap<>();
-		map.put("slerp.version", reader.readLine().split(" = ")[1]);
-		map.put("spring.version", reader.readLine().split(" = ")[1]);
+		map.put("slerp.version", reader.readLine().split("=")[1]);
+		map.put("spring.version", reader.readLine().split("=")[1]);
 		return map;
 	}
 

@@ -46,14 +46,14 @@
 			<classpath refid="project-builder.classpath" />
 		</java>
 	</target>
-	<target name="jar" depends="build-project">		
+	<target name="jar" depends="clean, build-subprojects,build-project">		
 		<jar destfile="lib/project-builder.jar" basedir="bin">
 			<manifest>
 				<attribute name="Main-Class" value="org.slerp.project.Setup" />
 			</manifest>
-			<zipgroupfileset dir="lib" includes="**/*.jar" />
+			<!-- <zipgroupfileset dir="lib" includes="**/*.jar" /> -->
 		</jar>
-
+		<copy file="lib/project-builder.jar" tofile="../slerp-eclipse-plugin/libs/project-builder.jar"/>
 	</target>
 	
 </project>

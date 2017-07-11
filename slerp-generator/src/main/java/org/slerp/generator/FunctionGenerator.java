@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Scanner;
 
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.source.JavaClassSource;
@@ -49,9 +48,11 @@ public class FunctionGenerator implements Generator {
 	@Override
 	public void generate(String query) {
 		this.query = query;
-		String className = getReturnByQuery();
+		System.err.println("Query : " + query);
+		String className = FunctionGenerator.getReturnByQuery(this.query);
+		System.out.println("Class Name : " + className);
 		if (Strings.isNullOrEmpty(className)) {
-			throw new CoreException("Cannot Find Class By Query");
+			throw new CoreException("Cannot Find Class By Query" + query);
 		}
 
 		File repositoryFile = new File(srcDir,
@@ -105,7 +106,7 @@ public class FunctionGenerator implements Generator {
 			MethodSource<JavaClassSource> clsMethod = cls.addMethod().setName("handle");
 			clsMethod.setPublic();
 			clsMethod.setReturnType(Dto.class);
-			String methodParam = Strings.uncapitalize(getReturnByQuery()).concat("Dto");
+			String methodParam = Strings.uncapitalize(getReturnByQuery(query)).concat("Dto");
 			clsMethod.addParameter("Dto", methodParam);
 			cls.addImport(Dto.class);
 			StringBuffer buffer = new StringBuffer();
@@ -132,7 +133,7 @@ public class FunctionGenerator implements Generator {
 						buffer.append("(").append(var.concat("Dto").concat(".get").concat(entry.getValue().toString())
 								.concat("(\"").concat(entry.getKey().toString()).concat("\")")).append(");\n");
 						buffer.append("return new Dto().put(\"" + var + "\", " + var + ");");
-					} else {
+					} else if (type == FunctionType.PAGE) {
 						buffer.append("int page = " + var.concat("Dto") + ".getInt(\"page\");");
 						buffer.append("int size = " + var.concat("Dto") + ".getInt(\"size\");");
 						buffer.append("Page".concat("<").concat(className).concat(">")).append(" ")
@@ -148,6 +149,8 @@ public class FunctionGenerator implements Generator {
 						cls.addImport("org.springframework.data.domain.Page");
 						cls.addImport("org.springframework.data.domain.PageRequest");
 						method.addParameter("Pageable", "pageable");
+					} else {
+						throw new CoreException("You need to choose the function type");
 					}
 				}
 			} else {
@@ -176,12 +179,17 @@ public class FunctionGenerator implements Generator {
 
 			clsMethod.addAnnotation(Override.class);
 			clsMethod.setBody(buffer.toString());
-			writer = new FileWriter(new File(srcDir, packageTarget.replace(".", "/").concat("/")
-					.concat(Strings.capitalize(methodName)).concat(".java")));
+			File file = new File(srcDir,
+					packageTarget.replace(".", "/").concat("/").concat(Strings.capitalize(methodName)).concat(".java"));
+			if (!file.getParentFile().isDirectory() && !file.getParentFile().mkdirs()) {
+				throw new CoreException("Failsed to create directory " + file.getPath());
+			}
+			writer = new FileWriter(file);
 			writer.write(cls.toString());
 			writer.close();
 			System.err.println("Generated Successfully Created : " + cls.getCanonicalName().concat(".java"));
 		} catch (IOException e) {
+			e.printStackTrace();
 			throw new CoreException("Cannot find file " + repositoryFile.getName() + " in package " + packageRepoName
 					+ " error : " + e);
 		}
@@ -191,7 +199,7 @@ public class FunctionGenerator implements Generator {
 		return EntityUtils.readEntities(new File(srcDir));
 	}
 
-	public List<String> getParamsByQuery(String query) {
+	public static List<String> getParamsByQuery(String query) {
 		String[] split = query.split(" ");
 		List<String> params = new ArrayList<String>();
 		for (String q : split) {
@@ -199,15 +207,11 @@ public class FunctionGenerator implements Generator {
 				params.add(q.replace(":", "").trim());
 			}
 		}
-		// if (type == FunctionType.PAGE) {
-		// params.add("page");
-		// params.add("size");
-		// }
 		System.err.println(params);
 		return params;
 	}
 
-	public String getReturnByQuery() {
+	public static String getReturnByQuery(String query) {
 		String[] split = query.split(" ");
 		for (int i = 0; i < split.length; i++) {
 			if (split[i].equalsIgnoreCase("FROM")) {
@@ -218,26 +222,31 @@ public class FunctionGenerator implements Generator {
 	}
 
 	public static void main(String[] args) {
-		FunctionGenerator generator = new FunctionGenerator("org.slerp.ecommerce.entity",
-				"org.slerp.ecommerce.repository", "/home/kiditz/apps/framework/slerp-ecommerce-service/src/main/java/",
-				"getProduct");
-		generator.packageTarget = "org.slerp.ecommerce.service.product";
-		String query = "SELECT p FROM Product p";
-		generator.type = FunctionType.PAGE;
-		List<String> params = generator.getParamsByQuery(query);
-
-		Dto paramDto = new Dto();
-		Scanner scanner = new Scanner(System.in);
-		for (String param : params) {
-			System.out.print("Type for " + param + " : ");
-			String type = scanner.nextLine();
-			paramDto.put(param, JUnitTestGenerator.primitivType.get(type));
-		}
-		generator.params = paramDto;
-		System.out.println();
-
-		generator.generate(query);
-		scanner.close();
+		System.out.println(
+				FunctionGenerator.getReturnByQuery("SELECT p FROM Category p WHERE p.categoryName = :categoryName"));
+		// FunctionGenerator generator = new
+		// FunctionGenerator("org.slerp.ecommerce.entity",
+		// "org.slerp.ecommerce.repository",
+		// "/home/kiditz/apps/framework/slerp-ecommerce-service/src/main/java/",
+		// "getProduct");
+		// generator.packageTarget = "org.slerp.ecommerce.service.product";
+		// String query = "SELECT p FROM Category p WHERE p.categoryName =
+		// :categoryName";
+		// generator.type = FunctionType.PAGE;
+		// List<String> params = FunctionGenerator.getParamsByQuery(query);
+		//
+		// Dto paramDto = new Dto();
+		// Scanner scanner = new Scanner(System.in);
+		// for (String param : params) {
+		// System.out.print("Type for " + param + " : ");
+		// String type = scanner.nextLine();
+		// paramDto.put(param, JUnitTestGenerator.primitivType.get(type));
+		// }
+		// generator.params = paramDto;
+		// System.out.println();
+		//
+		// generator.generate(query);
+		// scanner.close();
 	}
 
 	static public enum FunctionType {

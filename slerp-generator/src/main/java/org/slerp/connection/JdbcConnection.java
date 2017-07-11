@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.jboss.forge.roaster.model.util.Strings;
+import org.slerp.connection.ConnectionUtils.Setting;
 import org.slerp.core.CoreException;
 import org.slerp.core.Dto;
 import org.slerp.core.utils.StreamUtils;
@@ -28,26 +30,23 @@ public class JdbcConnection {
 	static final String FK_COLUMN_NAME = "FK" + COLUMN_NAME;
 	static final String FK_TABLE_NAME = "FK" + TABLE_NAME;
 	static final String IS_NULLABLE = "IS_NULLABLE";
-	private String url = null;
-	private String username = null;
-	private String password = null;
-	private String driver = null;
 	private DatabaseMetaData metaData = null;
 	Connection connection;
+	private Setting setting = new Setting();
 
 	public JdbcConnection(String settingPath) {
 		File file = new File(settingPath);
 		InputStream stream = null;
-		
+
 		try {
 			stream = new FileInputStream(file);
 			properties.load(stream);
-			this.driver = properties.getProperty("slerp.jdbc.driver").trim();
-			this.url = properties.getProperty("slerp.jdbc.url").trim();
-			this.username = properties.getProperty("slerp.jdbc.username").trim();
-			this.password = properties.getProperty("slerp.jdbc.password").trim();
+			this.setting.pathToJar = properties.getProperty("slerp.database.path");
+			this.setting.driverClassName = properties.getProperty("spring.database.driverClassName").trim();
+			this.setting.url = properties.getProperty("spring.datasource.url").trim();
+			this.setting.username = properties.getProperty("spring.datasource.username").trim();
+			this.setting.password = properties.getProperty("spring.datasource.password").trim();
 			this.connection = getConnection();
-			
 		} catch (IOException e) {
 			throw new CoreException(e.getMessage());
 		} finally {
@@ -57,27 +56,34 @@ public class JdbcConnection {
 			printMetaData();
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
-		} catch (SQLException e) {		
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 
 	private Connection getConnection() {
+
 		Connection connection = null;
 		try {
-			Class.forName(driver);
-			connection = DriverManager.getConnection(url, username, password);
-			this.metaData = connection.getMetaData();
-			return connection;
+			if (Strings.isNullOrEmpty(setting.pathToJar)) {
+				Class.forName(setting.driverClassName);
+				connection = DriverManager.getConnection(setting.url, setting.username, setting.password);
+				this.metaData = connection.getMetaData();
+			} else {
+				connection = ConnectionUtils.getConnection(setting);
+				this.metaData = connection.getMetaData();
+			}
+			System.out.println(connection == null ? "connection fail" : "connection success");
 		} catch (Exception e) {
 			throw new CoreException(e.getMessage(), e);
 		}
+		return connection;
 	}
 
 	public List<JdbcTable> getTables() {
 		String types[] = { "TABLE" };
-		try {			
+		try {
 			ResultSet rs = metaData.getTables(null, null, null, types);
 
 			List<JdbcTable> tables = new ArrayList<>();
@@ -89,7 +95,7 @@ public class JdbcConnection {
 				List<JdbcColumn> columns = getColumns(table);
 				table.setColumns(columns);
 				table.setPrimaryKeyCount(countPrimaryKey(columns));
-				
+
 			}
 			return tables;
 		} catch (Exception e) {
@@ -101,7 +107,7 @@ public class JdbcConnection {
 		List<JdbcTable> tables = getTables();
 		for (JdbcTable table : tables) {
 			if (table.getTableName().equalsIgnoreCase(name))
-				return table;			
+				return table;
 		}
 		throw new CoreException("Failed to find table with name " + name);
 	}
@@ -113,27 +119,27 @@ public class JdbcConnection {
 		ResultSet rsForeignKey = metaData.getImportedKeys(connection.getCatalog(), null, table.getTableName());
 		// System.err.println(table.getTableName() + ":" +
 		// getSequenceByTableName(table.getTableName()));
-		
+
 		List<JdbcColumn> columns = new ArrayList<>();
 		while (rs.next()) {
 			String isNullAble = rs.getString(IS_NULLABLE);
 			JdbcColumn column = new JdbcColumn(rs.getString(COLUMN_NAME), rs.getString(TYPE_NAME),
 					rs.getInt(COLUMN_SIZE));
 			column.setNullAble(isNullAble.equals("YES") ? true : false);
-			
+
 			columns.add(column);
-		}		
+		}
 		String sequenceName = getSequenceByTableName(table.getTableName());
 		while (rsPrimary.next()) {
 			String columnName = rsPrimary.getString(COLUMN_NAME);
 			for (JdbcColumn jdbcColumn : columns) {
 				if (jdbcColumn.getColumnName().equals(columnName)) {
 					jdbcColumn.setPrimaryKey(true);
-					if(sequenceName != null){
+					if (sequenceName != null) {
 						jdbcColumn.setSequenceName(sequenceName);
 					}
 				}
-				
+
 			}
 			// System.err.println(columnName + keySeq);
 		}
@@ -143,7 +149,7 @@ public class JdbcConnection {
 			String pkName = rsForeignKey.getString("PKCOLUMN_NAME");
 			String pkTableName = rsForeignKey.getString("PKTABLE_NAME");
 			String fkTableNAme = rsForeignKey.getString("FKTABLE_NAME");
-			
+
 			for (JdbcColumn jdbcColumn : columns) {
 				if (jdbcColumn.getColumnName().equals(fkName)) {
 					Dto foreignKey = new Dto();
@@ -177,7 +183,6 @@ public class JdbcConnection {
 
 	public static void main(String[] args) {
 		JdbcConnection connection = new JdbcConnection("src/main/resources/slerp.properties");
-		//List<JdbcTable> tables = connection.getTables();
 		Dto dto = new Dto();
 		dto.put("tables", connection.getTable("category"));
 		System.out.println(dto);

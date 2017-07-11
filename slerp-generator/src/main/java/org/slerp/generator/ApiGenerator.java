@@ -27,6 +27,7 @@ public class ApiGenerator {
 	private String packageEntity;
 	private String packageRepository;
 	List<JpaParser> parsers = new ArrayList<>();
+	private File file;
 
 	public ApiGenerator(String apiDir, String srcDir, String packageEntity, String packageRepository,
 			String packageService, String packageController) {
@@ -110,7 +111,7 @@ public class ApiGenerator {
 
 		}
 		// System.err.println(cls.toString());
-		File file = new File(apiDir, packageController.replace(".", "/").concat("/")
+		file = new File(apiDir, packageController.replace(".", "/").concat("/")
 				.concat(Strings.capitalize(controllerName).concat("Controller")).concat(".java"));
 		if (!file.getParentFile().isDirectory())
 			file.getParentFile().mkdirs();
@@ -118,6 +119,10 @@ public class ApiGenerator {
 		writer.write(cls.toString());
 		writer.close();
 		System.out.println("Generator successfully created " + cls.getCanonicalName().concat(".java"));
+	}
+
+	public File getFile() {
+		return file;
 	}
 
 	private void writeTransactionParam(MethodSource<JavaClassSource> method, Dto service, Set<Dto> fields) {
@@ -173,5 +178,5 @@ public class ApiGenerator {
 		generator.generate();
 
 	}
-
+	
 }

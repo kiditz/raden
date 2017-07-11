@@ -115,6 +115,7 @@ public class UnitTestGeneratorMojo extends AbstractMojo {
 		generate(fields, scanner);
 		scanner.close();
 		generator.generate();
+		
 	}
 
 	private static void generate(Set<Dto> fieldSet, Scanner scanner) {
