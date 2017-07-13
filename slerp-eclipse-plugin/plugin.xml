@@ -69,8 +69,7 @@
  
    <extension
          point="org.eclipse.ui.menus">
-<<<<<<< HEAD
-	 <menuContribution
+      <menuContribution
         locationURI="popup:popup:org.eclipse.ui.popup.any?after=additions">
 		<menu
            id="org.slerp.menus"
@@ -79,10 +78,6 @@
       </menuContribution>
       <menuContribution
             locationURI="popup:org.slerp.menus?after=additions">
-=======
-      <menuContribution
-            locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
             <command
                   commandId="SlerpPlugin.commands.databaseSetting"
                   id="SlerpPlugin.menus.sampleCommand"
@@ -99,9 +94,6 @@
          			</visibleWhen>
             </command>
       </menuContribution>
-<<<<<<< HEAD
       
-=======
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
    </extension>
 </plugin>

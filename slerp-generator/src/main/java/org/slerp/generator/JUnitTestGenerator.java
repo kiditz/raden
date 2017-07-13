@@ -50,15 +50,9 @@ public class JUnitTestGenerator {
 		primitivType.put("Short", "java.lang.Short");
 		primitivType.put("short", "java.lang.Short");
 		primitivType.put("BigDecimal", "java.math.BigDecimal");
-<<<<<<< HEAD
 		primitivType.put("Date", "java.util.Date");
 		primitivType.put("String", "java.lang.String");
 		primitivType.put("List", "java.util.List");
-=======
-		primitivType.put("date", "java.util.Date");
-		primitivType.put("Date", "java.util.Date");
-		primitivType.put("String", "java.lang.String");
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 
 		numberType.put("int", "java.lang.Integer");
 		numberType.put("Integer", "java.lang.Integer");
@@ -301,7 +295,6 @@ public class JUnitTestGenerator {
 			field.put("fieldType", dataType);
 			field.put("value", value);
 		}
-		
 
 	}
 
@@ -324,8 +317,5 @@ public class JUnitTestGenerator {
 	public File getOutputFile() {
 		return outputFile;
 	}
-<<<<<<< HEAD
 
-=======
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 }

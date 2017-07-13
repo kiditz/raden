@@ -6,12 +6,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
-<<<<<<< HEAD
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
-=======
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.source.JavaClassSource;
@@ -243,7 +240,6 @@ public class FunctionGenerator implements Generator {
 	}
 
 	public static void main(String[] args) {
-<<<<<<< HEAD
 		System.err.println(JUnitTestGenerator.numberType.toString());
 		System.out.println(
 				FunctionGenerator.getReturnByQuery("SELECT p FROM Category p WHERE p.categoryName = :categoryName"));
@@ -271,33 +267,6 @@ public class FunctionGenerator implements Generator {
 
 		generator.generate(query);
 		scanner.close();
-=======
-		System.out.println(
-				FunctionGenerator.getReturnByQuery("SELECT p FROM Category p WHERE p.categoryName = :categoryName"));
-		// FunctionGenerator generator = new
-		// FunctionGenerator("org.slerp.ecommerce.entity",
-		// "org.slerp.ecommerce.repository",
-		// "/home/kiditz/apps/framework/slerp-ecommerce-service/src/main/java/",
-		// "getProduct");
-		// generator.packageTarget = "org.slerp.ecommerce.service.product";
-		// String query = "SELECT p FROM Category p WHERE p.categoryName =
-		// :categoryName";
-		// generator.type = FunctionType.PAGE;
-		// List<String> params = FunctionGenerator.getParamsByQuery(query);
-		//
-		// Dto paramDto = new Dto();
-		// Scanner scanner = new Scanner(System.in);
-		// for (String param : params) {
-		// System.out.print("Type for " + param + " : ");
-		// String type = scanner.nextLine();
-		// paramDto.put(param, JUnitTestGenerator.primitivType.get(type));
-		// }
-		// generator.params = paramDto;
-		// System.out.println();
-		//
-		// generator.generate(query);
-		// scanner.close();
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 	}
 
 	static public enum FunctionType {
