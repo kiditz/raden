@@ -41,11 +41,7 @@ public class FunctionGeneratorPage extends BaseGenerator {
 	private Dto paramDto = new Dto();
 	// get this array from
 	// http://docs.oracle.com/html/E13946_04/ejb3_langref.html
-<<<<<<< HEAD
 	public static final String[] queryCompletion = new String[] { "SELECT", "FROM", "WHERE", "UPDATE", "DELETE",
-=======
-	private static final String[] queryCompletion = new String[] { "SELECT", "FROM", "WHERE", "UPDATE", "DELETE",
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 			"JOIN", "OUTER", "INNER", "LEFT", "GROUP", "BY", "HAVING", "FETCH", "DISTINCT", "OBJECT", "NULL", "TRUE",
 			"FALSE", "NOT", "AND", "OR", "LIKE", "IN", "AS", "UNKNOWN", "EMPTY", "MEMBER", "OF", "IS", "AVG", "MAX",
 			"MIN", "SUM", "COUNT", "ORDER", "BY", "ASC", "DESC", "MOD", "UPPER", "LOWER", "TRIM", "POSITION",

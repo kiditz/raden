@@ -168,10 +168,6 @@ public class SWTUtil {
 			proposalAdapter = new ContentProposalAdapter(combo, new ComboContentAdapter(), proposalProvider,
 					getActivationKeystroke(), getAutoactivationChars());
 		} else if (control instanceof Text) {
-<<<<<<< HEAD
-=======
-
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 			Text text = (Text) control;
 			proposalProvider = new SimpleContentProposalProvider(items);
 			proposalAdapter = new ContentProposalAdapter(text, new TextContentAdapter(), proposalProvider,

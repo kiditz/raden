@@ -35,12 +35,7 @@ public class UnitTestGeneratorPage extends BaseGenerator {
 	private List listReceiver;
 	private Dto serviceDto;
 	private JUnitTestGenerator generator;
-<<<<<<< HEAD
 	private Button btnScanService;	
-=======
-	private Button btnScanService;
-	private Button btnRefresh;
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 	private Group content;
 	private ScrolledComposite sc;
 	private Set<Dto> fields = new HashSet<>();
@@ -105,16 +100,11 @@ public class UnitTestGeneratorPage extends BaseGenerator {
 		btnScanService.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
 		btnScanService.setText("&Scan Business");
 		btnScanService.addSelectionListener(new SelectionAdapter() {
-<<<<<<< HEAD
-=======
-
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
 				readBusiness();
 			}
 		});
-<<<<<<< HEAD
 		listReceiver.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -126,23 +116,6 @@ public class UnitTestGeneratorPage extends BaseGenerator {
 				}
 			}
 
-=======
-		btnRefresh = new Button(container, SWT.PUSH);
-		gd = new GridData(SWT.FILL, SWT.FILL, true, false);
-		gd.horizontalSpan = 3;
-		btnRefresh.setLayoutData(gd);
-		btnRefresh.setText("Refresh");
-		btnRefresh.setEnabled(false);
-		btnRefresh.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				try {
-					handleParser();
-				} catch (ClassNotFoundException e1) {
-					e1.printStackTrace();
-				}
-			}
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 		});
 		gd = new GridData(SWT.FILL, SWT.FILL, true, true);
 		gd.horizontalSpan = 3;
@@ -167,10 +140,6 @@ public class UnitTestGeneratorPage extends BaseGenerator {
 		validate();
 		if (generator == null) {
 			updateStatus("Please select one in the receiver class");
-<<<<<<< HEAD
-=======
-			listReceiver.setToolTipText("Select one class in here");
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 			btnScanService.setFocus();
 			return;
 		}
@@ -198,7 +167,6 @@ public class UnitTestGeneratorPage extends BaseGenerator {
 			// if (field.getString("fieldType").equals("java.lang.Object")) {
 			String fieldName = field.getString("fieldName");
 			String fieldType = field.getString("fieldType");
-<<<<<<< HEAD
 			System.out.println(fieldType);
 			new Label(content, SWT.NONE).setText(fieldName);
 			Text txtDataType = new Text(content, SWT.SINGLE | SWT.LEAD | SWT.BORDER);
@@ -222,15 +190,6 @@ public class UnitTestGeneratorPage extends BaseGenerator {
 					field.put("fieldType", dataType);
 				}
 			});
-=======
-			new Label(content, SWT.NONE).setText(fieldName);
-			Text txtDataType = new Text(content, SWT.SINGLE | SWT.LEAD | SWT.BORDER);
-			txtDataType.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-			Class<?> clz = Class.forName(fieldType);
-			SWTUtil.setAutoCompletion(txtDataType, JUnitTestGenerator.primitivType.values().toArray(new String[] {}));
-			txtDataType.setText(clz.getSimpleName());
-			String dataType = JUnitTestGenerator.primitivType.get(txtDataType.getText());
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 			Text txtValue = new Text(content, SWT.SINGLE | SWT.LEAD | SWT.BORDER);
 			txtValue.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 			txtValue.setMessage("value for " + fieldName);
@@ -241,17 +200,7 @@ public class UnitTestGeneratorPage extends BaseGenerator {
 					field.put("value", txtValue.getText());
 				}
 			});
-<<<<<<< HEAD
 
-=======
-			txtDataType.addModifyListener(new ModifyListener() {
-
-				@Override
-				public void modifyText(ModifyEvent arg0) {
-					field.put("fieldType", dataType);
-				}
-			});
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 		}
 
 		fields.forEach(f -> {
@@ -266,7 +215,6 @@ public class UnitTestGeneratorPage extends BaseGenerator {
 
 	private void readBusiness() {
 		validate();
-<<<<<<< HEAD
 
 		String baseDir = getProject().getProject().findMember("src/main/java").getLocation().toOSString();
 		final String entityPackage = getTxtEntityPackage().getText();
@@ -280,16 +228,6 @@ public class UnitTestGeneratorPage extends BaseGenerator {
 		for (Object element : serviceDto.keySet()) {
 			System.out.println("{" + element.toString() + "}");
 			listSender.add(element.toString().trim());
-=======
-		this.btnRefresh.setEnabled(true);
-		String baseDir = getProject().getProject().findMember("src/main/java").getLocation().toOSString();
-		generator = new JUnitTestGenerator(baseDir, getTxtEntityPackage().getText(), getTxtRepoPackage().getText(),
-				getTxtServicePackage().getText());
-
-		serviceDto = generator.getBusiness();
-		for (Object element : serviceDto.keySet()) {
-			listSender.add(element.toString());
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 		}
 	}
 

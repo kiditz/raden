@@ -10,7 +10,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
-<<<<<<< HEAD
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -18,11 +17,11 @@ import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.fieldassist.ContentProposalAdapter;
 import org.eclipse.jface.fieldassist.SimpleContentProposalProvider;
 import org.eclipse.jface.fieldassist.TextContentAdapter;
-=======
+
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -105,41 +104,25 @@ public class DatabaseSettingDialog extends TitleAreaDialog {
 		lblDriver.setText("Database Driver * ");
 		txtDriver = new Text(container, SWT.SINGLE | SWT.LEAD | SWT.BORDER);
 		txtDriver.setLayoutData(gd);
-<<<<<<< HEAD
 
-=======
-		
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 		// URL
 		Label lblUrl = new Label(container, SWT.NONE);
 		lblUrl.setText("Url * ");
 		txtUrl = new Text(container, SWT.SINGLE | SWT.LEAD | SWT.BORDER);
 		txtUrl.setLayoutData(gd);
-<<<<<<< HEAD
 
-=======
-		
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 		// Username
 		Label lblUsername = new Label(container, SWT.NONE);
 		lblUsername.setText("Username * ");
 		txtUsername = new Text(container, SWT.SINGLE | SWT.LEAD | SWT.BORDER);
 		txtUsername.setLayoutData(gd);
-<<<<<<< HEAD
 
-=======
-		
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 		// Password
 		Label lblPassword = new Label(container, SWT.NONE);
 		lblPassword.setText("Password * ");
 		txtPassword = new Text(container, SWT.SINGLE | SWT.LEAD | SWT.PASSWORD);
 		txtPassword.setLayoutData(gd);
-<<<<<<< HEAD
 
-=======
-	
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 		try {
 			bindPropertiesToUI();
 		} catch (Exception e) {
@@ -150,21 +133,12 @@ public class DatabaseSettingDialog extends TitleAreaDialog {
 		modifyListener();
 		return container;
 	}
-<<<<<<< HEAD
-
-	private void initConnection() {
-=======
 	private void initConnection(){
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 		txtDriver.setText("org.postgresql.Driver");
 		txtUrl.setText("jdbc:postgresql://localhost:5432/database");
 		txtUsername.setText("postgres");
 		txtPassword.setText("postgres");
 	}
-<<<<<<< HEAD
-
-=======
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 	private void modifyListener() {
 
 	}
@@ -294,16 +268,9 @@ public class DatabaseSettingDialog extends TitleAreaDialog {
 		}
 	}
 
-<<<<<<< HEAD
-	public static void main(String[] args) {
-		new DatabaseSettingDialog(new Display().getActiveShell(), null).open();
-	}
-
-	
-=======
 	public static void main(String[] args) {		
 		new DatabaseSettingDialog(new Display().getActiveShell(), null).open();
 	}
 
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
+
 }

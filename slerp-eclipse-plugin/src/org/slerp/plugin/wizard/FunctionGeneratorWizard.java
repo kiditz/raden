@@ -53,11 +53,7 @@ public class FunctionGeneratorWizard extends Wizard implements INewWizard {
 	}
 
 	public boolean performFinish() {
-<<<<<<< HEAD
 		page.validate();
-=======
-
->>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 		final String entityPackage = page.getTxtEntityPackage().getText();
 		final String repositoryPackage = page.getTxtRepoPackage().getText();
 		// final IResource propertiesFile = page.getApplicationProperties();
