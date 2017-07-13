@@ -51,6 +51,7 @@ public class EntityGeneratorWizard extends Wizard implements INewWizard {
 	}
 
 	public boolean performFinish() {
+<<<<<<< HEAD
 		page.validate();
 		final String items[] = page.getListReceiver().getItems();
 
@@ -60,11 +61,22 @@ public class EntityGeneratorWizard extends Wizard implements INewWizard {
 		}
 		
 		page.updateStatus(null);
+=======
+
+		final String items[] = page.getListReceiver().getItems();
+
+		if (items == null || items.length == 0) {
+			page.updateStatus("Please elect at least 1 data from database");
+		}
+>>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 		final String entityPackage = page.getTxtEntityPackage().getText();
 		final String repositoryPackage = page.getTxtRepoPackage().getText();
 		final IResource propertiesFile = page.getApplicationProperties();
 		IProject project = page.getProject().getProject();
+<<<<<<< HEAD
 
+=======
+>>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 		IRunnableWithProgress op = new IRunnableWithProgress() {
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
 				try {
@@ -101,7 +113,10 @@ public class EntityGeneratorWizard extends Wizard implements INewWizard {
 			monitor.beginTask("Generate Entity For Table : " + item, 2);
 			try {
 				generator.generate(item);
+<<<<<<< HEAD
 
+=======
+>>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -109,6 +124,10 @@ public class EntityGeneratorWizard extends Wizard implements INewWizard {
 		Dto cacheDto = new Dto();
 		cacheDto.put("packageEntity", entityPackage);
 		cacheDto.put("packageRepo", repositoryPackage);
+<<<<<<< HEAD
+=======
+
+>>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 		try {
 			File cacheDir = project.findMember("src/main/resources").getLocation().toFile();
 			File cacheOut = new File(cacheDir, "generator.cache");

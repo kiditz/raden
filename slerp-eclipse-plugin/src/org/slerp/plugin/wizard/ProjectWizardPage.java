@@ -69,8 +69,13 @@ public class ProjectWizardPage extends WizardPage {
 		new Label(container, SWT.NONE).setText("Version : ");
 		txtVersion = new Text(container, SWT.SINGLE | SWT.LEAD | SWT.BORDER);
 		txtVersion.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+<<<<<<< HEAD
 //		EditMask mask = new EditMask(txtVersion);
 //		mask.setMask("#.#.#.nnnnnnnn");
+=======
+		EditMask mask = new EditMask(txtVersion);
+		mask.setMask("#.#.#.nnnnnnnn");
+>>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 		Composite composite = new Composite(container, SWT.NONE);
 		GridData gd = new GridData(SWT.CENTER, SWT.FILL, true, true);
 		gd.horizontalSpan = 2;

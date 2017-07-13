@@ -62,7 +62,11 @@ public class JdbcConnection {
 
 	}
 
+<<<<<<< HEAD
 	public Connection getConnection() {
+=======
+	private Connection getConnection() {
+>>>>>>> 46384b33f249163934744a89a9ee61aade39c9c5
 
 		Connection connection = null;
 		try {
