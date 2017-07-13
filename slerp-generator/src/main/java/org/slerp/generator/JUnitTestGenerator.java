@@ -36,6 +36,8 @@ public class JUnitTestGenerator {
 	private Dto business;
 	private File outputFile;
 	public static Map<String, String> primitivType = new HashMap<>();
+	public static Map<String, String> numberType = new HashMap<>();
+	public static Map<String, String> stringType = new HashMap<>();
 	static {
 		primitivType.put("int", "java.lang.Integer");
 		primitivType.put("Integer", "java.lang.Integer");
@@ -48,14 +50,26 @@ public class JUnitTestGenerator {
 		primitivType.put("Short", "java.lang.Short");
 		primitivType.put("short", "java.lang.Short");
 		primitivType.put("BigDecimal", "java.math.BigDecimal");
-		primitivType.put("date", "java.util.Date");
 		primitivType.put("Date", "java.util.Date");
 		primitivType.put("String", "java.lang.String");
+		primitivType.put("List", "java.util.List");
 
+		numberType.put("int", "java.lang.Integer");
+		numberType.put("Integer", "java.lang.Integer");
+		numberType.put("Float", "java.lang.Float");
+		numberType.put("float", "java.lang.Float");
+		numberType.put("Double", "java.lang.Double");
+		numberType.put("double", "java.lang.Double");
+		numberType.put("Long", "java.lang.Long");
+		numberType.put("long", "java.lang.Long");
+		numberType.put("Short", "java.lang.Short");
+		numberType.put("short", "java.lang.Short");
+		numberType.put("BigDecimal", "java.math.BigDecimal");
+
+		stringType.put("String", "java.lang.String");
 	}
 
 	public JUnitTestGenerator(String srcDir, String packageEntity, String packageRepo, String packageTarget) {
-		super();
 		this.srcDir = srcDir;
 		this.packageEntity = packageEntity;
 		this.packageRepo = packageRepo;
@@ -63,9 +77,8 @@ public class JUnitTestGenerator {
 		try {
 			this.business = EntityUtils
 					.readBusiness(new File(this.srcDir, this.packageTarget.replace(".", "/").concat("/")));
-
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new CoreException(e);
 		}
 	}
 
@@ -97,10 +110,9 @@ public class JUnitTestGenerator {
 		StringBuilder prepareBody = new StringBuilder();
 		prepareBody.append("executeSqlScript(\"classpath:"
 				+ packageName.replace(".", "/").concat("/").concat(className).concat(".sql") + "\", false);\n");
-		// System.err.println(prepareBody);
 		methodPrepare.setBody(prepareBody.toString());
 
-		MethodSource<JavaClassSource> method = cls.addMethod("test()").setPublic();
+		MethodSource<JavaClassSource> method = cls.addMethod("testSuccess()").setPublic();
 		method.addAnnotation("org.junit.Test");
 		StringBuilder buffer = new StringBuilder();
 		for (Dto field : getFields()) {
@@ -113,13 +125,16 @@ public class JUnitTestGenerator {
 			String name = field.getString("fieldName");
 			if (field.getBoolean("isForeignKey"))
 				continue;
-			if (!type.contains("lang") && !field.getBoolean("isJoin")) {
-				cls.addImport(type);
+			if (type.contains(".")) {
+				if (!type.contains("lang") && !field.getBoolean("isJoin")) {
+					cls.addImport(type);
+				}
 			}
 			if (value.isEmpty())
 				value = "null";
 
 			String simpleType = type.substring(type.lastIndexOf('.') + 1, type.length());
+
 			String parseValue = parseValue(type, value);
 
 			if (className.startsWith("Add") || className.startsWith("Edit")) {
@@ -134,6 +149,7 @@ public class JUnitTestGenerator {
 				buffer.append(simpleType.concat(" ").concat(name).concat(" = ").concat(parseValue).concat(";\n"));
 			}
 		}
+
 		cls.addImport("org.assertj.core.api.Assertions");
 		buffer.append("\n");
 
@@ -188,9 +204,9 @@ public class JUnitTestGenerator {
 			if (!outputSql.getParentFile().isDirectory())
 				outputSql.getParentFile().mkdirs();
 			writer = new FileWriter(outputSql);
-			writer.write("/*");
+			writer.write("/*\n");
 			writer.write("TODO : Handle Sql File");
-			writer.write("*/");
+			writer.write("*/\n");
 			writer.close();
 			System.out.println("Generator successfully created " + cls.getCanonicalName().concat(".sql"));
 		} catch (IOException e) {
@@ -199,16 +215,15 @@ public class JUnitTestGenerator {
 		} finally {
 		}
 
-		// System.out.println(outputFile);
-		// System.out.println(parseResult);
-
 	}
 
 	public void parse(String className) throws IOException {
 		try {
 			if (business.get(className) == null)
 				throw new CoreException("Failed to find business file with name " + className);
+			System.err.println(business);
 			businessFile = new File(business.getString(className));
+
 			parser = new JpaParser(businessFile, packageEntity, packageRepo);
 			parser.setUseEntity(true);
 			parseResult = parser.parse();
@@ -244,12 +259,12 @@ public class JUnitTestGenerator {
 
 	}
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, ClassNotFoundException {
 		Scanner scanner = new Scanner(System.in);
 		JUnitTestGenerator generator = new JUnitTestGenerator(
-				"/home/kiditz/apps/framework/slerp-ecommerce-service/src/main/java/", "org.slerp.ecommerce.entity",
-				"org.slerp.ecommerce.repository", "org.slerp.ecommerce.service.product");
-		generator.parse("AddProduct");
+				"/home/kiditz/slerp-git/runtime-EclipseApplication/oauth/src/main/java/", "org.slerp.oauth.entity",
+				"org.slerp.oauth.repository", "org.slerp.oauth.service.principal");
+		generator.parse("AddUserPrincipal");
 		Set<Dto> fields = generator.getFields();
 		generate(fields, scanner);
 		scanner.close();
@@ -280,7 +295,6 @@ public class JUnitTestGenerator {
 			field.put("fieldType", dataType);
 			field.put("value", value);
 		}
-		
 
 	}
 
@@ -303,4 +317,5 @@ public class JUnitTestGenerator {
 	public File getOutputFile() {
 		return outputFile;
 	}
+
 }

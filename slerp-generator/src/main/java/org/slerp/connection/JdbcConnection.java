@@ -62,7 +62,7 @@ public class JdbcConnection {
 
 	}
 
-	private Connection getConnection() {
+	public Connection getConnection() {
 
 		Connection connection = null;
 		try {

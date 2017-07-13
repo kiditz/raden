@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -38,16 +37,28 @@ public class JpaParser {
 		StringBuffer buffer = new StringBuffer();
 		repositoryPath = repositoryPath.substring(0, repositoryPath.indexOf("java") + 4).concat("/")
 				.concat(packageRepo.replace(".", "/")).concat("/");
+
 		buffer.append(repositoryPath);
-		for (FieldSource<JavaClassSource> field : cls.getFields()) {
-			if (cls.getName().contains(field.getType().getName().replace("Repository", ""))) {
-				String repoName = field.getType().getName();
-				buffer.append(repoName.concat(".java"));
+		if (cls.getFields().size() == 1) {
+			String repoName = cls.getFields().get(0).getType().getName();
+			buffer.append(repoName.concat(".java"));
+		} else {
+			for (FieldSource<JavaClassSource> field : cls.getFields()) {
+				if (cls.getName().contains(field.getType().getName().replace("Repository", ""))) {
+					String repoName = field.getType().getName();
+					buffer.append(repoName.concat(".java"));
+				}
 			}
 		}
+		if (!buffer.toString().endsWith(".java")) {
+			throw new CoreException("The Method name should be contins with entity");
+		}
+
+		System.out.println("Repository Path " + buffer.toString());
 		File repositoryFile = new File(buffer.toString());
 		if (!repositoryFile.exists())
 			throw new CoreException("Cannot found repository for business " + cls.getName());
+
 		JavaInterfaceSource repoInf = Roaster.parse(JavaInterfaceSource.class, repositoryFile);
 		String jpaInfo = repoInf.getInterfaces().get(0);
 
@@ -157,21 +168,23 @@ public class JpaParser {
 	public static void main(String[] args) throws IOException {
 		JpaParser parser = new JpaParser(
 				new File(
-						"/home/kiditz/apps/framework/slerp-ecommerce-service/src/main/java/org/slerp/ecommerce/service/product/EditProduct.java"),
-				"org.slerp.ecommerce.entity", "org.slerp.ecommerce.repository");
+						"/home/kiditz/slerp-git/runtime-EclipseApplication/oauth/src/main/java/org/slerp/oauth/service/principal/AddUserPrincipal.java"),
+				"org.slerp.oauth.entity", "org.slerp.oauth.repository");
+		parser.setUseEntity(true);
 		System.err.println(parser.parse());
-		Scanner scanner = new Scanner(System.in);
+
 		Set<Dto> fields = parser.getFields();
+
 		Iterator<Dto> it = fields.iterator();
-		int i = 0;
 		while (it.hasNext()) {
 			Dto field = (Dto) it.next();
-			System.err.print((i + 1) + ". "
-					+ field.getString("fieldName").concat(field.getBoolean("isNull") ? " " : " (*) ").concat(" : "));
-			String value = scanner.nextLine();
-			field.put("value", value);
-			i++;
+			// System.err.print((i + 1) + ". "
+			// + field.getString("fieldName").concat(field.getBoolean("isNull")
+			// ? " " : " (*) ").concat(" : "));
+			//
+			// i++;
+			System.err.println(field.toString());
 		}
-		scanner.close();
+
 	}
 }

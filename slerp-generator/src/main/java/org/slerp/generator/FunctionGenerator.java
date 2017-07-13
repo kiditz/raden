@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.source.JavaClassSource;
@@ -79,15 +82,25 @@ public class FunctionGenerator implements Generator {
 				inf.addImport("org.springframework.data.domain.Page");
 				inf.addImport("org.springframework.data.domain.Pageable");
 			}
+
 			String[] keyValidationValues = new String[type == FunctionType.PAGE ? params.size() + 2 : params.size()];
+			Set<String> numberValidationValues = new TreeSet<>();
+			Set<String> stringValidationValues = new TreeSet<>();
 			int i = 0;
 			for (Entry<Object, Object> entry : params.entrySet()) {
 				keyValidationValues[i] = entry.getKey().toString();
+				if (JUnitTestGenerator.numberType.containsValue(entry.getValue())) {
+					numberValidationValues.add(entry.getKey().toString());
+				}
+				if (JUnitTestGenerator.stringType.containsValue(entry.getValue())) {
+					stringValidationValues.add(entry.getKey().toString());
+				}
 				method.addParameter(entry.getValue().toString(), entry.getKey().toString())
 						.addAnnotation("org.springframework.data.repository.query.Param")
 						.setStringValue(entry.getKey().toString());
 				i++;
 			}
+			System.err.println(numberValidationValues.toString());
 			if (type == FunctionType.PAGE) {
 				keyValidationValues[i++] = "page";
 				keyValidationValues[i++] = "size";
@@ -103,6 +116,10 @@ public class FunctionGenerator implements Generator {
 			cls.addImport(packageName.concat(".").concat(className));
 			cls.addAnnotation("org.springframework.stereotype.Service");
 			cls.addAnnotation("org.slerp.core.validation.KeyValidation").setStringArrayValue(keyValidationValues);
+			cls.addAnnotation("org.slerp.core.validation.NumberValidation")
+					.setStringArrayValue(numberValidationValues.toArray(new String[] {}));
+			cls.addAnnotation("org.slerp.core.validation.NotBlankValidation")
+					.setStringArrayValue(stringValidationValues.toArray(new String[] {}));
 			MethodSource<JavaClassSource> clsMethod = cls.addMethod().setName("handle");
 			clsMethod.setPublic();
 			clsMethod.setReturnType(Dto.class);
@@ -187,6 +204,7 @@ public class FunctionGenerator implements Generator {
 			writer = new FileWriter(file);
 			writer.write(cls.toString());
 			writer.close();
+			System.err.println(file.getAbsolutePath());
 			System.err.println("Generated Successfully Created : " + cls.getCanonicalName().concat(".java"));
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -222,31 +240,33 @@ public class FunctionGenerator implements Generator {
 	}
 
 	public static void main(String[] args) {
+		System.err.println(JUnitTestGenerator.numberType.toString());
 		System.out.println(
 				FunctionGenerator.getReturnByQuery("SELECT p FROM Category p WHERE p.categoryName = :categoryName"));
-		// FunctionGenerator generator = new
-		// FunctionGenerator("org.slerp.ecommerce.entity",
-		// "org.slerp.ecommerce.repository",
-		// "/home/kiditz/apps/framework/slerp-ecommerce-service/src/main/java/",
-		// "getProduct");
-		// generator.packageTarget = "org.slerp.ecommerce.service.product";
-		// String query = "SELECT p FROM Category p WHERE p.categoryName =
-		// :categoryName";
-		// generator.type = FunctionType.PAGE;
-		// List<String> params = FunctionGenerator.getParamsByQuery(query);
-		//
-		// Dto paramDto = new Dto();
-		// Scanner scanner = new Scanner(System.in);
-		// for (String param : params) {
-		// System.out.print("Type for " + param + " : ");
-		// String type = scanner.nextLine();
-		// paramDto.put(param, JUnitTestGenerator.primitivType.get(type));
-		// }
-		// generator.params = paramDto;
+		FunctionGenerator generator = new FunctionGenerator("org.slerp.ecommerce.entity",
+				"org.slerp.ecommerce.repository", "/home/kiditz/apps/framework/slerp-ecommerce-service/src/main/java/",
+				"getProduct");
+		generator.packageTarget = "org.slerp.ecommerce.service.product";
+		String query = "SELECT p FROM Category p WHERE p.categoryName = :categoryName AND p.categoryId = :categoryId";
+		generator.type = FunctionType.PAGE;
+		List<String> params = FunctionGenerator.getParamsByQuery(query);
+		Dto paramDto = new Dto();
+		@SuppressWarnings("resource")
+		Scanner scanner = new Scanner(System.in);
+		for (String param : params) {
+			System.out.print("Type for " + param + " : ");
+			String type = scanner.nextLine();
+			if (JUnitTestGenerator.primitivType.get(type) != null)
+				paramDto.put(param, JUnitTestGenerator.primitivType.get(type));
+			else
+				throw new CoreException("Data Type Not Found");
+		}
+
+		generator.params = paramDto;
 		// System.out.println();
-		//
-		// generator.generate(query);
-		// scanner.close();
+
+		generator.generate(query);
+		scanner.close();
 	}
 
 	static public enum FunctionType {
