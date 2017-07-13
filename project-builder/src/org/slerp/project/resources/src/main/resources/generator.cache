@@ -1,0 +1,6 @@
+{
+  "packageRepo" : "${GROUP_ID}.repository",
+  "packageService" : "${GROUP_ID}.service",
+  "enablePrepare" : true,
+  "packageEntity" : "${GROUP_ID}.entity"
+}
