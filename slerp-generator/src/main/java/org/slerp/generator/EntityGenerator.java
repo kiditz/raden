@@ -48,7 +48,6 @@ public class EntityGenerator implements Generator {
 	@Override
 	public void generate(String tableName) {
 		JdbcTable table = connection.getTable(tableName);
-
 		JavaClassSource source = generateEntity(table);
 
 		File src = new File(srcDir, packageName.replace(".", "/").concat("/"));
@@ -60,6 +59,7 @@ public class EntityGenerator implements Generator {
 			writer = new FileWriter(fileToWrite);
 			writer.write(source.toString());
 			writer.close();
+
 			source = generateJoin(table.getColumns(), source.toString());
 			writer = new FileWriter(fileToWrite);
 			writer.write(source.toString());
