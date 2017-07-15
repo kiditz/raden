@@ -156,27 +156,21 @@ public class ApiGenerator {
 	}
 
 	public static void main(String[] args) throws IOException {
-		ApiGenerator generator = new ApiGenerator("/home/kiditz/apps/framework/slerp-ecommerce-api/src/main/java/",
-				"/home/kiditz/apps/framework/slerp-ecommerce-service/src/main/java/", "org.slerp.ecommerce.entity",
-				"org.slerp.ecommerce.repository", "org.slerp.ecommerce.service.product", "org.slerp.ecommerce.api");
+		ApiGenerator generator = new ApiGenerator(
+				"/home/kiditz/slerp-git/runtime-EclipseApplication/oauth-api/src/main/java/",
+				"/home/kiditz/slerp-git/runtime-EclipseApplication/oauth/src/main/java/", "org.slerp.oauth.entity",
+				"org.slerp.oauth.repository", "org.slerp.oauth.service.principal", "org.slerp.core.api");
 		generator.parse();
 		Scanner scanner = new Scanner(System.in);
 		for (int i = 0; i < generator.getParsers().size(); i++) {
 			JpaParser parser = generator.getParsers().get(i);
-			System.out.println(parser.getService().getString("className"));
-			for (Dto field : parser.getFields()) {
-				if (field.getString("fieldType").equals("java.lang.Object")) {
+			
+			System.out.println(parser.getService().toString());
 
-					System.out.print("Data type for (" + field.getString("fieldName") + ") : ");
-					String type = scanner.nextLine();
-					field.put("fieldType", JUnitTestGenerator.primitivType.get(type));
-
-				}
-			}
 		}
+		
 		scanner.close();
 		generator.generate();
-
 	}
-	
+
 }

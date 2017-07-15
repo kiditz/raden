@@ -16,10 +16,20 @@ import org.eclipse.jface.fieldassist.ContentProposalAdapter;
 import org.eclipse.jface.fieldassist.SimpleContentProposalProvider;
 import org.eclipse.jface.fieldassist.TextContentAdapter;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.TableEditor;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
 /**
@@ -211,5 +221,77 @@ public class SWTUtil {
 			ce.printStackTrace();
 		}
 		return projectList;
+	}
+
+	public static void setTableEditor(Table table) {
+		final TableEditor editor = new TableEditor(table);
+		editor.horizontalAlignment = SWT.LEFT;
+		editor.grabHorizontal = true;
+		table.addListener(SWT.MouseDown, new Listener() {
+
+			public void handleEvent(Event event) {
+				Rectangle clientArea = table.getClientArea();
+				Point pt = new Point(event.x, event.y);
+				int index = table.getTopIndex();
+				while (index < table.getItemCount()) {
+					boolean visible = false;
+
+					final TableItem item = table.getItem(index);
+
+					for (int i = 0; i < table.getColumnCount(); i++) {
+						Rectangle rect = item.getBounds(i);
+						if (rect.contains(pt)) {
+							final int column = i;
+
+							Text text = new Text(table, SWT.SINGLE | SWT.LEAD | SWT.BORDER);
+							text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+							Listener textListener = new Listener() {
+								public void handleEvent(final Event e) {
+									switch (e.type) {
+									case SWT.FocusOut:
+										item.setText(column, text.getText());
+										text.dispose();
+										break;
+									case SWT.Traverse:
+										switch (e.detail) {
+										case SWT.TRAVERSE_RETURN:
+											item.setText(column, text.getText());
+										case SWT.TRAVERSE_ESCAPE:
+											text.dispose();
+											e.doit = false;
+										}
+										break;
+									}
+								}
+							};
+							text.addListener(SWT.FocusOut, textListener);
+							text.addListener(SWT.Traverse, textListener);
+							editor.setEditor(text, item, i);
+							text.setText(item.getText(i));
+							text.selectAll();
+							text.setFocus();
+							text.redraw();
+							text.update();
+							if (text.isFocusControl()) {
+								text.addKeyListener(new KeyAdapter() {
+									@Override
+									public void keyPressed(KeyEvent e) {
+
+									}
+								});
+							}
+							return;
+						}
+						if (!visible && rect.intersects(clientArea)) {
+							visible = true;
+						}
+					}
+					if (!visible)
+						return;
+					index++;
+				}
+			}
+		});
+
 	}
 }

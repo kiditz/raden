@@ -39,6 +39,7 @@ import org.eclipse.ui.dialogs.ListSelectionDialog;
 import org.eclipse.ui.dialogs.SelectionDialog;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
+import org.slerp.core.CoreException;
 import org.slerp.core.Dto;
 
 @SuppressWarnings("restriction")
@@ -266,36 +267,35 @@ public abstract class BaseGenerator extends WizardPage {
 
 	private Dto updateCache() {
 		validate();
+		if (project != null) {
+			IResource cacheResource = project.getResource().getProject()
+					.findMember("src/main/resources/generator.cache");
+			if (cacheResource != null && cacheResource.exists()) {
+				try {
+					Dto cache = new Dto(readString(cacheResource.getLocation().toFile()));
+					String cacheEnPackage = cache.getString("packageEntity");
+					String cacheRepPackage = cache.getString("packageRepo");
+					txtEntityPackage.setText(cacheEnPackage);
+					txtRepoPackage.setText(cacheRepPackage);
+					if (isEnableServicePackage()) {
+						try {
+							txtServicePackage.setText(cache.getString("packageService"));
+						} catch (NullPointerException e) {
+						}
 
-		IResource cacheResource = null;
-		if (isEnableServicePackage()) {
-			cacheResource = project.getResource().getProject().findMember("src/main/resources/generator.cache");
-		} else {
-			cacheResource = apiProject.getResource().getProject().findMember("src/main/resources/generator.cache");
-		}
-		if (cacheResource != null && cacheResource.exists()) {
-			try {
-				Dto cache = new Dto(readString(cacheResource.getLocation().toFile()));
-				String cacheEnPackage = cache.getString("packageEntity");
-				String cacheRepPackage = cache.getString("packageRepo");
-				txtEntityPackage.setText(cacheEnPackage);
-				txtRepoPackage.setText(cacheRepPackage);
-				if (isEnableServicePackage()) {
-					try {
-						txtServicePackage.setText(cache.getString("packageService"));
-					} catch (NullPointerException e) {
 					}
-
-				}
-				if (isEnableControllerPackage()) {
-					try {
-						txtControllerPackage.setText(cache.getString("packageController"));
-					} catch (NullPointerException e) {
+					if (isEnableControllerPackage()) {
+						try {
+							txtControllerPackage.setText(cache.getString("packageController"));
+						} catch (NullPointerException e) {
+						}
 					}
+					return cache;
+				} catch (Exception e) {
+					throw new CoreException(
+							"Failed to get cache, please delete generator.cache and let slerp update this one after generating",
+							e);
 				}
-				return cache;
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
 		}
 		return null;
@@ -374,6 +374,8 @@ public abstract class BaseGenerator extends WizardPage {
 	}
 
 	public String readString(File file) throws IOException {
+		if (!file.exists())
+			throw new CoreException("Cannot read file who's not exist");
 		InputStream in = new FileInputStream(file);
 		int read = 0;
 		byte[] bytes = new byte[4096];
@@ -382,6 +384,7 @@ public abstract class BaseGenerator extends WizardPage {
 			baos.write(bytes, 0, read);
 		}
 		in.close();
+
 		return baos.toString("UTF-8");
 	}
 

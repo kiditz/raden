@@ -1,6 +1,7 @@
 package org.slerp.plugin.handler;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -8,49 +9,52 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.LineStyleEvent;
 import org.eclipse.swt.custom.LineStyleListener;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.ide.IDE;
 import org.slerp.connection.JdbcConnection;
 import org.slerp.core.CoreException;
 import org.slerp.core.Dto;
 import org.slerp.plugin.wizard.FunctionGeneratorPage;
+import org.springframework.util.StringUtils;
 
 public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 	JdbcConnection connection;
-	private List<StyleRange> list = new ArrayList<>();
+	private final StringBuilder builder = new StringBuilder();
+	private final List<StyleRange> list = new ArrayList<>();
 	private Group tableContainer;
 	private TableViewer viewer;
 	private StyledText txtQuery;
+	private String resultQuery;
+	IFile outputFile;
+	IWorkbenchWindow window;
 
-	public InsertQueryFromSelectRealDatabaseDialog(Shell shell, File settingFile) {
-		super(shell);
+	public InsertQueryFromSelectRealDatabaseDialog(IWorkbenchWindow window, File settingFile) {
+		super(window.getShell());
+		this.window = window;
 		if (settingFile == null)
 			throw new CoreException("Setting file is required");
 		this.connection = new JdbcConnection(settingFile.getAbsolutePath());
@@ -142,10 +146,14 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 			ResultSet rs = conn.createStatement().executeQuery(txtQuery.getText());
 			ResultSetMetaData meta = rs.getMetaData();
 			int columnCount = meta.getColumnCount();
-
+			builder.append("INSERT INTO ").append(meta.getTableName(1));
+			builder.append(" (");
+			builder.append(meta.getColumnName(1));
+			int index = 1;
 			for (int i = 1; i <= columnCount; i++) {
-
-				TableViewerColumn column = createTableViewerColumn(meta.getColumnName(i), 100, i - 1);
+				String columnName = meta.getColumnName(i);
+				builder.append(", ").append(meta.getColumnName(index++));
+				TableViewerColumn column = createTableViewerColumn(columnName, 100, i - 1);
 				final String tableName = meta.getColumnName(i);
 				column.setLabelProvider(new ColumnLabelProvider() {
 					@Override
@@ -154,86 +162,48 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 						return dto.getString(tableName);
 					}
 				});
-
 			}
+			builder.append(") VALUES ");
 
 			List<Dto> list = new ArrayList<Dto>();
+
 			while (rs.next()) {
 				Dto dto = new Dto();
+				builder.append("\n(");
+				if (meta.getColumnTypeName(1).equalsIgnoreCase("varchar")
+						|| meta.getColumnTypeName(1).equalsIgnoreCase("text")
+						|| meta.getColumnTypeName(1).equalsIgnoreCase("bpchar")) {
+					builder.append("'").append(rs.getString(1)).append("'");
+				}else{
+					builder.append(rs.getString(1));
+				}
+
 				for (int i = 1; i <= columnCount; i++) {
+
 					dto.put(meta.getColumnName(i), rs.getString(i));
 				}
+
+				for (int i = 2; i <= columnCount; i++) {
+
+					builder.append(", ");
+					if (meta.getColumnTypeName(i).equalsIgnoreCase("varchar")
+							|| meta.getColumnTypeName(i).equalsIgnoreCase("text")
+							|| meta.getColumnTypeName(i).equalsIgnoreCase("bpchar")) {
+						builder.append("'").append(rs.getString(i)).append("'");
+					}else{
+						builder.append(rs.getString(i));
+					}
+				}
+				builder.append("),");
 				list.add(dto);
 			}
 
+			resultQuery = builder.toString().substring(0, builder.toString().length() - 1).concat(";");
 			viewer.setInput(list);
 
-			final TableEditor editor = new TableEditor(table);
-			editor.horizontalAlignment = SWT.LEFT;
-			editor.grabHorizontal = true;
-			table.addListener(SWT.MouseDown, new Listener() {
-				public void handleEvent(Event event) {
-					Rectangle clientArea = table.getClientArea();
-					Point pt = new Point(event.x, event.y);
-					int index = table.getTopIndex();
-					while (index < table.getItemCount()) {
-						boolean visible = false;
+		} catch (
 
-						final TableItem item = table.getItem(index);
-
-						for (int i = 0; i < table.getColumnCount(); i++) {
-							Rectangle rect = item.getBounds(i);
-							if (rect.contains(pt)) {
-								final int column = i;
-
-								Text text = new Text(table, SWT.SINGLE | SWT.LEAD | SWT.BORDER);
-								text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-								Listener textListener = new Listener() {
-									public void handleEvent(final Event e) {
-										switch (e.type) {
-										case SWT.FocusOut:
-											item.setText(column, text.getText());
-											text.dispose();
-											break;
-										case SWT.Traverse:
-											switch (e.detail) {
-											case SWT.TRAVERSE_RETURN:
-												item.setText(column, text.getText());
-												// FALL THROUGH
-											case SWT.TRAVERSE_ESCAPE:
-												text.dispose();
-												e.doit = false;
-											}
-											break;
-										}
-									}
-								};
-								text.addListener(SWT.FocusOut, textListener);
-								text.addListener(SWT.Traverse, textListener);
-								editor.setEditor(text, item, i);
-								text.setText(item.getText(i));
-								text.selectAll();
-								text.setFocus();
-								text.redraw();
-								text.update();
-								if (text.isFocusControl()) {
-
-								}
-
-								return;
-							}
-							if (!visible && rect.intersects(clientArea)) {
-								visible = true;
-							}
-						}
-						if (!visible)
-							return;
-						index++;
-					}
-				}
-			});
-			tableContainer.layout();
-		} catch (SQLException e) {
+		SQLException e) {
 			MessageDialog.openError(getShell(), "Error!!", e.toString());
 			return;
 		}
@@ -250,14 +220,6 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 		return viewerColumn;
 	}
 
-	public static void main(String[] args) {
-		File settingFile = new File(
-				"/home/kiditz/slerp-git/runtime-EclipseApplication/oauth/src/test/resources/application.properties");
-		InsertQueryFromSelectRealDatabaseDialog dialog = new InsertQueryFromSelectRealDatabaseDialog(
-				new Display().getActiveShell(), settingFile);
-		dialog.open();
-	}
-
 	private StyleRange getHighlightStyle(int startOffset, int length) {
 		StyleRange styleRange = new StyleRange();
 		styleRange.start = startOffset;
@@ -266,4 +228,40 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 		return styleRange;
 	}
 
+	public String getInsertQuery() {
+		return resultQuery;
+	}
+
+	@Override
+	protected void createButtonsForButtonBar(Composite parent) {
+		createButton(parent, IDialogConstants.NO_ID, "Preview", false);
+		super.createButtonsForButtonBar(parent);
+		getButton(Window.OK).setText("Save");
+	}
+
+	@Override
+	protected void buttonPressed(int buttonId) {
+		super.buttonPressed(buttonId);
+		if (buttonId == IDialogConstants.OK_ID) {
+			if (getInsertQuery().toString() == null || StringUtils.isEmpty(getInsertQuery().toString())) {
+				MessageDialog.openError(getShell(), "We cannot recognize your request",
+						"Just try to use select query and get insert query in your sql file!!");
+				return;
+			}
+			try {
+				FileWriter writer = new FileWriter(outputFile.getLocation().toFile(), true);
+				writer.append("\n");
+				writer.append(getInsertQuery());
+				writer.close();
+				outputFile.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
+				IDE.openEditor(window.getActivePage(), outputFile);
+			} catch (Exception e) {
+				throw new CoreException("Failed to open file ", e);
+			}
+		}
+	}
+
+	public void setOutputFile(IFile outputFile) {
+		this.outputFile = outputFile;
+	}
 }

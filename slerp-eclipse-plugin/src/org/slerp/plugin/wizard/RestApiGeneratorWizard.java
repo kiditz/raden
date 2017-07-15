@@ -62,10 +62,10 @@ public class RestApiGeneratorWizard extends Wizard implements INewWizard {
 		ApiGenerator generator = page.getGenerator();
 
 		Dto cacheDto = new Dto();
-		cacheDto.put("packageEntity", page.getTxtEntityPackage());
-		cacheDto.put("packageRepo", page.getTxtRepoPackage());
-		cacheDto.put("packageService", page.getTxtServicePackage());
-		cacheDto.put("packageController", page.getTxtControllerPackage());
+		cacheDto.put("packageEntity", page.getTxtEntityPackage().getText());
+		cacheDto.put("packageRepo", page.getTxtRepoPackage().getText());
+		cacheDto.put("packageService", page.getTxtServicePackage().getText());
+		cacheDto.put("packageController", page.getTxtControllerPackage().getText());
 		cacheDto.put("enablePrepare", true);
 		try {
 			File cacheDir = page.getProject().getProject().findMember("src/main/resources").getLocation().toFile();
@@ -105,7 +105,6 @@ public class RestApiGeneratorWizard extends Wizard implements INewWizard {
 
 	private void doFinish(IProgressMonitor monitor, ApiGenerator generator, IJavaProject serviceProject,
 			IJavaProject apiProject) throws CoreException, IOException {
-
 		generator.generate();
 		monitor.beginTask("Generate " + generator.getFile().getName(), 2);
 		apiProject.getProject().refreshLocal(IResource.DEPTH_INFINITE, monitor);

@@ -79,7 +79,7 @@ public class RestApiGeneratorPage extends BaseGenerator {
 		setControl(container);
 	}
 
-	private void handleGenerator() {		
+	private void handleGenerator() {
 		String apiProjectDir = getApiProject().getProject().findMember("src/main/java").getLocation().toOSString();
 		String serviceProjectDir = getProject().getProject().findMember("src/main/java").getLocation().toOSString();
 		String packageEntity = getTxtEntityPackage().getText();
@@ -87,9 +87,11 @@ public class RestApiGeneratorPage extends BaseGenerator {
 		String packageService = getTxtServicePackage().getText();
 		String packageController = getTxtControllerPackage().getText();
 		validate();
-		generator = new ApiGenerator(apiProjectDir, serviceProjectDir, packageEntity, packageRepository, packageService,
-				packageController);
+		
 		try {
+			
+			generator = new ApiGenerator(apiProjectDir, serviceProjectDir, packageEntity, packageRepository,
+					packageService, packageController);
 			generator.parse();
 			for (int i = 0; i < generator.getParsers().size(); i++) {
 				JpaParser parser = generator.getParsers().get(i);
@@ -110,6 +112,7 @@ public class RestApiGeneratorPage extends BaseGenerator {
 					}
 				}
 			}
+			
 		} catch (IOException e1) {
 			throw new CoreException(e1);
 		}
