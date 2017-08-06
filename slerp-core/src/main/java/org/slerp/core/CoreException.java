@@ -7,19 +7,6 @@ public class CoreException extends RuntimeException {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public CoreException() {
-		super();
-
-	}
-
-	public CoreException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-	}
-
-	public CoreException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
 	public CoreException(String message) {
 		super(message);
 	}
@@ -27,4 +14,19 @@ public class CoreException extends RuntimeException {
 	public CoreException(Throwable cause) {
 		super(cause);
 	}
+
+	public CoreException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	@Override
+	public String getMessage() {
+		return super.getMessage();
+	}
+
+	@Override
+	public String toString() {
+		return getMessage();
+	}
+
 }

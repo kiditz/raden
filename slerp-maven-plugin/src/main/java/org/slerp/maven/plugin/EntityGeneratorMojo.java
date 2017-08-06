@@ -17,7 +17,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 import org.slerp.core.CoreException;
-import org.slerp.core.Dto;
+import org.slerp.core.ConcurentDto;
 import org.slerp.generator.EntityGenerator;
 import org.slerp.model.JdbcTable;
 import org.slf4j.Logger;
@@ -46,11 +46,11 @@ public class EntityGeneratorMojo extends AbstractMojo {
 		if (!cacheDir.isDirectory())
 			cacheDir.mkdirs();
 		File cacheFile = new File(cacheDir, "generator.cache");
-		Dto cacheDto = null;
+		ConcurentDto cacheDto = null;
 		try {
-			cacheDto = new Dto(readString(cacheFile));
+			cacheDto = new ConcurentDto(readString(cacheFile));
 		} catch (Exception e) {
-			cacheDto = new Dto();
+			cacheDto = new ConcurentDto();
 		}
 		String cacheEnPackage = cacheDto.getString("packageEntity");
 		String cacheRepPackage = cacheDto.getString("packageRepo");

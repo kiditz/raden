@@ -10,19 +10,18 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.jboss.forge.roaster.Roaster;
-import org.jboss.forge.roaster.model.source.FieldSource;
 import org.jboss.forge.roaster.model.source.JavaClassSource;
 import org.jboss.forge.roaster.model.source.JavaInterfaceSource;
 import org.slerp.core.CoreException;
-import org.slerp.core.Dto;
+import org.slerp.core.ConcurentDto;
 
 public class JpaParser {
 	private final File businessFile;
 	private String packageRepo = null;
 	private String packageEntity = null;
-	private Set<Dto> fields = ConcurrentHashMap.newKeySet();
+	private Set<ConcurentDto> fields = ConcurrentHashMap.newKeySet();
 	private boolean useEntity = false;
-	private Dto businessDto;
+	private ConcurentDto businessDto;
 
 	public JpaParser(File businessFile, String packageEntity, String packageRepo) {
 		this.businessFile = businessFile;
@@ -30,8 +29,8 @@ public class JpaParser {
 		this.packageEntity = packageEntity;
 	}
 
-	public Dto parse() throws IOException {
-		List<Dto> tempFields = new ArrayList<>();
+	public ConcurentDto parse() throws IOException {
+		List<ConcurentDto> tempFields = new ArrayList<>();
 		JavaClassSource cls = Roaster.parse(JavaClassSource.class, businessFile);
 		String repositoryPath = businessFile.getAbsolutePath();
 		StringBuffer buffer = new StringBuffer();
@@ -39,17 +38,8 @@ public class JpaParser {
 				.concat(packageRepo.replace(".", "/")).concat("/");
 
 		buffer.append(repositoryPath);
-		if (cls.getFields().size() == 1) {
-			String repoName = cls.getFields().get(0).getType().getName();
-			buffer.append(repoName.concat(".java"));
-		} else {
-			for (FieldSource<JavaClassSource> field : cls.getFields()) {
-				if (cls.getName().contains(field.getType().getName().replace("Repository", ""))) {
-					String repoName = field.getType().getName();
-					buffer.append(repoName.concat(".java"));
-				}
-			}
-		}
+		String repoName = cls.getFields().get(0).getType().getName();
+		buffer.append(repoName.concat(".java"));
 		if (!buffer.toString().endsWith(".java")) {
 			throw new CoreException("The Method name should be contins with entity");
 		}
@@ -62,7 +52,7 @@ public class JpaParser {
 		JavaInterfaceSource repoInf = Roaster.parse(JavaInterfaceSource.class, repositoryFile);
 		String jpaInfo = repoInf.getInterfaces().get(0);
 
-		businessDto = new Dto();
+		businessDto = new ConcurentDto();
 
 		if (isUseEntity()) {
 			String entityInfo = jpaInfo.substring(jpaInfo.indexOf("<") + 1, jpaInfo.indexOf(","));
@@ -70,23 +60,23 @@ public class JpaParser {
 			String entityPath = businessFile.getAbsolutePath().concat("/")
 					.concat(packageEntity.replace(".", "/").concat("/"));
 			entityPath = entityPath.substring(0, entityPath.indexOf("java") + 4);
-			Dto files = EntityUtils.readEntities(new File(entityPath));
+			ConcurentDto files = EntityUtils.readEntities(new File(entityPath));
 			File entityFile = new File(files.getString(entityInfo));
-			Dto entity = EntityUtils.readEntityAsDto(entityFile);
-			List<Dto> fieldsDto = Collections.synchronizedList(entity.getList("fields"));
+			ConcurentDto entity = EntityUtils.readEntityAsDto(entityFile);
+			List<ConcurentDto> fieldsDto = Collections.synchronizedList(entity.getList("fields"));
 			// Get Temp FROM JOIN
-			for (Dto field : fieldsDto) {
+			for (ConcurentDto field : fieldsDto) {
 				if (field.getBoolean("isJoin")) {
 					String type = field.getString("fieldType");
 					String simpleType = type.substring(type.lastIndexOf('.') + 1, type.length());
 					File file = new File(entityFile.getParent(), simpleType.concat(".java"));
-					Dto entityDto = EntityUtils.readEntityAsDto(file);
+					ConcurentDto entityDto = EntityUtils.readEntityAsDto(file);
 					tempFields = entityDto.getList("fields");
 				}
 			}
 			if (!tempFields.isEmpty()) {
 				for (int j = 0; j < fieldsDto.size(); j++) {
-					Dto temp = getFieldByName(tempFields, fieldsDto.get(j).getString("fieldName"));
+					ConcurentDto temp = getFieldByName(tempFields, fieldsDto.get(j).getString("fieldName"));
 					if (temp != null) {
 						fieldsDto.remove(j);
 						temp.put("isJoin", true);
@@ -99,9 +89,9 @@ public class JpaParser {
 			String[] keyValidations = cls.getAnnotation("org.slerp.core.validation.KeyValidation")
 					.getStringArrayValue();
 			for (int i = 0; i < keyValidations.length; i++) {
-				Dto field = getFieldByName(entity.getList("fields"), keyValidations[i]);
+				ConcurentDto field = getFieldByName(entity.getList("fields"), keyValidations[i]);
 				if (field == null) {
-					field = new Dto();
+					field = new ConcurentDto();
 					field.put("fieldName", keyValidations[i]);
 					field.put("fieldType", "java.lang.Object");
 					field.put("isNull", true);
@@ -125,7 +115,7 @@ public class JpaParser {
 		businessDto.put("packageName", cls.getPackage());
 		businessDto.put("className", cls.getName());
 
-		Dto repositoryDto = new Dto();
+		ConcurentDto repositoryDto = new ConcurentDto();
 		repositoryDto.put("packageName", repoInf.getPackage());
 		repositoryDto.put("className", repoInf.getName());
 		businessDto.put("repository", repositoryDto);
@@ -133,17 +123,17 @@ public class JpaParser {
 		return businessDto;
 	}
 
-	public Set<Dto> getFields() {
+	public Set<ConcurentDto> getFields() {
 		return fields;
 	}
 
-	public void setFields(Set<Dto> fields) {
+	public void setFields(Set<ConcurentDto> fields) {
 		this.fields = fields;
 	}
 
-	public static Dto getFieldByName(List<Dto> fields, String name) {
+	public static ConcurentDto getFieldByName(List<ConcurentDto> fields, String name) {
 		int i = 0;
-		for (Dto field : fields) {
+		for (ConcurentDto field : fields) {
 			if (field.getString("fieldName").equals(name)) {
 				field.put("index", i);
 				return field;
@@ -161,7 +151,7 @@ public class JpaParser {
 		this.useEntity = useEntity;
 	}
 
-	public Dto getService() {
+	public ConcurentDto getService() {
 		return businessDto;
 	}
 
@@ -173,11 +163,11 @@ public class JpaParser {
 		parser.setUseEntity(true);
 		System.err.println(parser.parse());
 
-		Set<Dto> fields = parser.getFields();
+		Set<ConcurentDto> fields = parser.getFields();
 
-		Iterator<Dto> it = fields.iterator();
+		Iterator<ConcurentDto> it = fields.iterator();
 		while (it.hasNext()) {
-			Dto field = (Dto) it.next();
+			ConcurentDto field = (ConcurentDto) it.next();
 			// System.err.print((i + 1) + ". "
 			// + field.getString("fieldName").concat(field.getBoolean("isNull")
 			// ? " " : " (*) ").concat(" : "));

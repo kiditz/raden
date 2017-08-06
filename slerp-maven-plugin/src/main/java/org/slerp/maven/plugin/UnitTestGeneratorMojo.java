@@ -18,7 +18,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 import org.slerp.core.CoreException;
-import org.slerp.core.Dto;
+import org.slerp.core.ConcurentDto;
 import org.slerp.generator.JUnitTestGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,11 +47,11 @@ public class UnitTestGeneratorMojo extends AbstractMojo {
 		if (!cacheDir.isDirectory())
 			cacheDir.mkdirs();
 		File cacheFile = new File(cacheDir, "generator.cache");
-		Dto cacheDto = null;
+		ConcurentDto cacheDto = null;
 		try {
-			cacheDto = new Dto(readString(cacheFile));
+			cacheDto = new ConcurentDto(readString(cacheFile));
 		} catch (Exception e) {
-			cacheDto = new Dto();
+			cacheDto = new ConcurentDto();
 		}
 		String cacheEnPackage = cacheDto.getString("packageEntity");
 		String cacheTgtPackage = cacheDto.getString("packageService");
@@ -96,7 +96,7 @@ public class UnitTestGeneratorMojo extends AbstractMojo {
 		System.out.println("----------------------------------------------------------------------");
 		System.out.println("Found Service in project");
 		System.out.println("----------------------------------------------------------------------");
-		Dto business = generator.getBusiness();
+		ConcurentDto business = generator.getBusiness();
 		int i = 1;
 		for (Object businessName : business.keySet()) {
 			System.out.println(i + ". " + businessName);
@@ -111,18 +111,18 @@ public class UnitTestGeneratorMojo extends AbstractMojo {
 		} catch (IOException e) {
 			throw new CoreException(e);
 		}
-		Set<Dto> fields = generator.getFields();
+		Set<ConcurentDto> fields = generator.getFields();
 		generate(fields, scanner);
 		scanner.close();
 		generator.generate();
 		
 	}
 
-	private static void generate(Set<Dto> fieldSet, Scanner scanner) {
-		List<Dto> fields = new ArrayList<>();
+	private static void generate(Set<ConcurentDto> fieldSet, Scanner scanner) {
+		List<ConcurentDto> fields = new ArrayList<>();
 		fieldSet.forEach(fields::add);
 		for (int i = 0; i < fields.size(); i++) {
-			Dto field = fields.get(i);
+			ConcurentDto field = fields.get(i);
 			String dataType = field.getString("fieldType");
 			if (dataType.equals("java.lang.Object")) {
 				System.out.print("\n");

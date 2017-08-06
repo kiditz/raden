@@ -15,7 +15,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 import org.slerp.core.CoreException;
-import org.slerp.core.Dto;
+import org.slerp.core.ConcurentDto;
 import org.slerp.generator.ApiGenerator;
 import org.slerp.generator.JUnitTestGenerator;
 import org.slerp.utils.JpaParser;
@@ -48,11 +48,11 @@ public class ApiGeneratorMojo extends AbstractMojo {
 		if (!cacheDir.isDirectory())
 			cacheDir.mkdirs();
 		File cacheFile = new File(cacheDir, "generator.cache");
-		Dto cacheDto = null;
+		ConcurentDto cacheDto = null;
 		try {
-			cacheDto = new Dto(readString(cacheFile));
+			cacheDto = new ConcurentDto(readString(cacheFile));
 		} catch (Exception e) {
-			cacheDto = new Dto();
+			cacheDto = new ConcurentDto();
 		}
 		String cacheEnPackage = cacheDto.getString("packageEntity");
 		String cacheTgtPackage = cacheDto.getString("packageService");
@@ -115,7 +115,7 @@ public class ApiGeneratorMojo extends AbstractMojo {
 				JpaParser parser = generator.getParsers().get(i);
 				System.out.println((i + 1) + ". " + parser.getService().getString("className"));
 				System.out.println("----------------------------------------------------------------------");
-				for (Dto field : parser.getFields()) {
+				for (ConcurentDto field : parser.getFields()) {
 					if (field.getString("fieldType").equals("java.lang.Object")) {
 						System.out.print("Data type for (" + field.getString("fieldName") + ") : ");
 						String type = scanner.nextLine();

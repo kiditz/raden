@@ -14,8 +14,8 @@ import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.source.JavaClassSource;
 import org.jboss.forge.roaster.model.source.MethodSource;
 import org.jboss.forge.roaster.model.util.Strings;
+import org.slerp.core.ConcurentDto;
 import org.slerp.core.CoreException;
-import org.slerp.core.Dto;
 import org.slerp.core.business.BusinessFunction;
 import org.slerp.core.business.BusinessTransaction;
 import org.slerp.utils.EntityUtils;
@@ -32,8 +32,8 @@ public class JUnitTestGenerator {
 	private String packageEntity;
 	private JpaParser parser;
 	private File businessFile;
-	private Dto parseResult;
-	private Dto business;
+	private ConcurentDto parseResult;
+	private ConcurentDto business;
 	private File outputFile;
 	public static Map<String, String> primitivType = new HashMap<>();
 	public static Map<String, String> numberType = new HashMap<>();
@@ -90,7 +90,7 @@ public class JUnitTestGenerator {
 		cls.addField("static private Logger log = LoggerFactory.getLogger(" + className + ".class)");
 		cls.addImport("org.slf4j.Logger");
 		cls.addImport("org.slf4j.LoggerFactory");
-		cls.addImport("org.slerp.core.Dto");
+		cls.addImport("org.slerp.core.Domain");
 		cls.addField().setName(Strings.uncapitalize(parseResult.getString("className")))
 				.setType(mode.equals("transaction") ? BusinessTransaction.class : BusinessFunction.class)
 				.addAnnotation("org.springframework.beans.factory.annotation.Autowired");
@@ -115,10 +115,9 @@ public class JUnitTestGenerator {
 		MethodSource<JavaClassSource> method = cls.addMethod("testSuccess()").setPublic();
 		method.addAnnotation("org.junit.Test");
 		StringBuilder buffer = new StringBuilder();
-		for (Dto field : getFields()) {
+		for (ConcurentDto field : getFields()) {
 			if (field == null)
 				continue;
-
 			String type = field.getString("fieldType");
 
 			String value = field.getString("value");
@@ -139,7 +138,7 @@ public class JUnitTestGenerator {
 
 			if (className.startsWith("Add") || className.startsWith("Edit")) {
 				if (field.getBoolean("isJoin")) {
-					buffer.append("Dto".concat(" ").concat(name).concat(" = new Dto();\n"));
+					buffer.append("Domain".concat(" ").concat(name).concat(" = new Domain();\n"));
 					buffer.append(name).append(".put(").append("\"" + name + "\"").append(", ").append(parseValue)
 							.append(");\n");
 				} else {
@@ -154,10 +153,10 @@ public class JUnitTestGenerator {
 		buffer.append("\n");
 
 		String entityName = parseResult.getDto("entity").getString("className");
-		String defaultDto = Strings.uncapitalize(entityName).concat("Dto");
-		buffer.append("Dto ").append(defaultDto).append(" ").append(" = new Dto();\n");
+		String defaultDto = Strings.uncapitalize(entityName).concat("Domain");
+		buffer.append("Domain ").append(defaultDto).append(" ").append(" = new Domain();\n");
 		// Write Dto
-		for (Dto field : getFields()) {
+		for (ConcurentDto field : getFields()) {
 			if (field == null)
 				continue;
 			String name = field.getString("fieldName");
@@ -166,14 +165,14 @@ public class JUnitTestGenerator {
 		}
 		// Write handle
 
-		buffer.append("Dto output" + entityName + " = ")
+		buffer.append("Domain output" + entityName + " = ")
 				.append(Strings.uncapitalize(parseResult.getString("className"))).append(".handle(").append(defaultDto)
 				.append(");\n");
 		buffer.append("log.info(\"Result Test {}\", output" + entityName + ");");
 		buffer.append("\n");
 
 		// Write Assert
-		for (Dto field : getFields()) {
+		for (ConcurentDto field : getFields()) {
 			if (field == null)
 				continue;
 			String name = field.getString("fieldName");
@@ -217,7 +216,7 @@ public class JUnitTestGenerator {
 
 	}
 
-	public void parse(String className) throws IOException {
+	public void parse(String className) throws IOException {		
 		try {
 			if (business.get(className) == null)
 				throw new CoreException("Failed to find business file with name " + className);
@@ -227,12 +226,12 @@ public class JUnitTestGenerator {
 			parser = new JpaParser(businessFile, packageEntity, packageRepo);
 			parser.setUseEntity(true);
 			parseResult = parser.parse();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public Dto getBusiness() {
+	public ConcurentDto getBusiness() {
 		return business;
 	}
 
@@ -262,20 +261,20 @@ public class JUnitTestGenerator {
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 		Scanner scanner = new Scanner(System.in);
 		JUnitTestGenerator generator = new JUnitTestGenerator(
-				"/home/kiditz/slerp-git/runtime-EclipseApplication/oauth/src/main/java/", "org.slerp.oauth.entity",
-				"org.slerp.oauth.repository", "org.slerp.oauth.service.principal");
-		generator.parse("AddUserPrincipal");
-		Set<Dto> fields = generator.getFields();
+				"/home/kiditz/apps/workspace-2017/school-service/src/main/java/", "org.slerp.school.entity",
+				"org.slerp.school.repository", "org.slerp.school.service.task");
+		generator.parse("AddTaskUser");
+		Set<ConcurentDto> fields = generator.getFields();
 		generate(fields, scanner);
 		scanner.close();
 		generator.generate();
 	}
 
-	private static void generate(Set<Dto> fieldSet, Scanner scanner) {
-		List<Dto> fields = new ArrayList<>();
+	private static void generate(Set<ConcurentDto> fieldSet, Scanner scanner) {
+		List<ConcurentDto> fields = new ArrayList<>();
 		fieldSet.forEach(fields::add);
 		for (int i = 0; i < fields.size(); i++) {
-			Dto field = fields.get(i);
+			ConcurentDto field = fields.get(i);
 			String dataType = field.getString("fieldType");
 			if (dataType.equals("java.lang.Object")) {
 				System.out.print("\n");
@@ -298,11 +297,11 @@ public class JUnitTestGenerator {
 
 	}
 
-	public Set<Dto> getFields() {
+	public Set<ConcurentDto> getFields() {
 		return parser.getFields();
 	}
 
-	public void setFields(Set<Dto> fields) {
+	public void setFields(Set<ConcurentDto> fields) {
 		parser.setFields(fields);
 	}
 
@@ -310,7 +309,7 @@ public class JUnitTestGenerator {
 		return parser;
 	}
 
-	public void setParseResult(Dto parseResult) {
+	public void setParseResult(ConcurentDto parseResult) {
 		this.parseResult = parseResult;
 	}
 

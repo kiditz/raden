@@ -2,11 +2,11 @@ package org.slerp.core.validation;
 
 import java.lang.annotation.Annotation;
 
-import org.slerp.core.Dto;
+import org.slerp.core.Domain;
 import org.slerp.core.utils.Validator;
 
 public class ValidatorAnnotationHandler {
-	public static void validate(Dto inputDto, Class<?> srcClass) {
+	public static void validate(Domain inputDomain, Class<?> srcClass) {
 		Annotation[] annotations = srcClass.getAnnotations();
 		for (Annotation annotation : annotations) {
 			if (annotation instanceof KeyValidation) {
@@ -15,15 +15,16 @@ public class ValidatorAnnotationHandler {
 				String[] keys = validation.value();
 				boolean required = validation.required();
 				if (required) {
-					Validator.validateKey(message, inputDto, keys);
+					Validator.validateKey(message, inputDomain, keys);
 				}
+
 			} else if (annotation instanceof EmailValidation) {
 				EmailValidation validation = (EmailValidation) annotation;
 				String message = validation.message();
 				String[] keys = validation.value();
 				boolean required = validation.required();
 				if (required) {
-					Validator.validateEmail(message, inputDto, keys);
+					Validator.validateEmail(message, inputDomain, keys);
 				}
 			} else if (annotation instanceof NotBlankValidation) {
 				NotBlankValidation validation = (NotBlankValidation) annotation;
@@ -31,7 +32,7 @@ public class ValidatorAnnotationHandler {
 				String[] keys = validation.value();
 				boolean required = validation.required();
 				if (required) {
-					Validator.validateNotEmpty(message, inputDto, keys);
+					Validator.validateNotEmpty(message, inputDomain, keys);
 				}
 			} else if (annotation instanceof NumberValidation) {
 				NumberValidation validation = (NumberValidation) annotation;
@@ -39,7 +40,7 @@ public class ValidatorAnnotationHandler {
 				String[] keys = validation.value();
 				boolean required = validation.required();
 				if (required) {
-					Validator.validateNumber(message, inputDto, keys);
+					Validator.validateNumber(message, inputDomain, keys);
 				}
 			}
 		}

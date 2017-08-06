@@ -8,9 +8,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface KeyValidation {
-	String[] value() default "org.slerp.core.validation.KeyValidation.@";
+	String[] value() default "required.key.@";
 
 	boolean required() default true;
 
-	String message() default "org.slerp.core.validation.KeyValidation.@";
+	String message() default "required.key.@";
 }

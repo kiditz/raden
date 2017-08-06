@@ -2,7 +2,7 @@ package org.slerp.model;
 
 import java.io.Serializable;
 
-import org.slerp.core.Dto;
+import org.slerp.core.ConcurentDto;
 
 public class JdbcColumn implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -12,7 +12,7 @@ public class JdbcColumn implements Serializable {
 	private String columnType;
 	private int columnSize;
 	private boolean nullAble;
-	private Dto foreignKeys;
+	private ConcurentDto foreignKeys;
 
 	public JdbcColumn(String columnName, String columnType, int columnSize) {
 		this.columnName = columnName;
@@ -59,11 +59,11 @@ public class JdbcColumn implements Serializable {
 		this.primaryKey = primaryKey;
 	}
 
-	public Dto getForeignKeys() {
+	public ConcurentDto getForeignKeys() {
 		return foreignKeys;
 	}
 
-	public void setForeignKeys(Dto foreignKeys) {
+	public void setForeignKeys(ConcurentDto foreignKeys) {
 		this.foreignKeys = foreignKeys;
 	}
 

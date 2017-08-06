@@ -1,7 +1,7 @@
 package org.slerp.core.business;
 
-import org.slerp.core.Dto;
+import org.slerp.core.Domain;
 
 public interface BusinessLayer {
-	public Dto handle(Dto inputDto);
+	public Domain handle(Domain inputDomain);
 }

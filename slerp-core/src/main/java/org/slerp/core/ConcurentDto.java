@@ -13,39 +13,44 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-public class Dto implements Map<Object, Object> {
+public class ConcurentDto implements Map<Object, Object> {
 	// Use Concurrent HashMap for thread safe
 	private Map<Object, Object> map = new ConcurrentHashMap<Object, Object>();
 	private static final ObjectMapper jsonMapper = new ObjectMapper();
 	static {
 		jsonMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+		jsonMapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+		jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		jsonMapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
+		jsonMapper.configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, false);
 	}
 
-	public Dto() {
+	public ConcurentDto() {
 	}
 
-	public Dto(Object other) {
+	public ConcurentDto(Object other) {
 		this(writeTo(other));
 	}
 
-	public Dto(Dto other) {
+	public ConcurentDto(ConcurentDto other) {
 		this(other.toString());
 	}
 
 	@SuppressWarnings("unchecked")
-	public Dto(String other) {
+	public ConcurentDto(String other) {
 		try {
 			this.map = (Map<Object, Object>) jsonMapper.readValue(other, HashMap.class);
 		} catch (JsonParseException e) {
-			e.printStackTrace();
+			throw new CoreException("failed.to.parse.json", e);
 		} catch (JsonMappingException e) {
-			e.printStackTrace();
+			throw new CoreException("failed.to.mapping.json", e);
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new CoreException("failed.to.read.json.data", e);
 		}
 	}
 
@@ -110,7 +115,9 @@ public class Dto implements Map<Object, Object> {
 		return map.putIfAbsent(key, value);
 	}
 
-	public Dto put(Object key, Object value) {
+	public ConcurentDto put(Object key, Object value) {
+		if (value == null)
+			throw new CoreException("required.value.for.key." + key);
 		map.put(key, value);
 		return this;
 	}
@@ -140,46 +147,51 @@ public class Dto implements Map<Object, Object> {
 		return this.map.entrySet();
 	}
 
-	public List<Dto> getList(String key) {
+	public List<ConcurentDto> getList(String key) {
 		try {
 			String result = jsonMapper.writeValueAsString(this.map.get(key));
-			List<Dto> dtoList = jsonMapper.readValue(result, new TypeReference<List<Dto>>() {
+			List<ConcurentDto> dtoList = jsonMapper.readValue(result, new TypeReference<List<ConcurentDto>>() {
 			});
 			return dtoList;
 		} catch (JsonProcessingException e) {
-			throw new CoreException(e);
+			throw new CoreException("the.value.should.be.json.list." + key, e);
 		} catch (IOException e) {
-			throw new CoreException(e);
+			throw new CoreException("failed.to.read.json.data", e);
 		}
 	}
 
-	public Set<Dto> getSet(String key) {
+	public Set<ConcurentDto> getSet(String key) {
 		try {
 			String result = jsonMapper.writeValueAsString(this.map.get(key));
-			Set<Dto> dtoList = jsonMapper.readValue(result, new TypeReference<Set<Dto>>() {
+			Set<ConcurentDto> dtoList = jsonMapper.readValue(result, new TypeReference<Set<ConcurentDto>>() {
 			});
 			return dtoList;
 		} catch (JsonProcessingException e) {
-			throw new CoreException(e);
+			throw new CoreException("the.value.should.be.json.set." + key, e);
 		} catch (IOException e) {
-			throw new CoreException(e);
+			throw new CoreException("failed.to.read.json.data", e);
 		}
 	}
 
-	public Dto getDto(String key) {
+	public ConcurentDto getDto(String key) {
 		try {
 			String result = jsonMapper.writeValueAsString(this.map.get(key));
-			Dto dto = jsonMapper.readValue(result.getBytes(), Dto.class);
-			return dto;
+			ConcurentDto ConcurentDto = jsonMapper.readValue(result.getBytes(), ConcurentDto.class);
+			return ConcurentDto;
 		} catch (JsonProcessingException e) {
-			throw new CoreException(e);
+			throw new CoreException("the.value.should.be.json.object." + key, e);
 		} catch (IOException e) {
-			throw new CoreException(e);
+			throw new CoreException("failed.to.read.json.data", e);
 		}
 	}
 
-	public <T> T convertTo(Class<T> classToSerialize) throws Exception {
-		return jsonMapper.readValue(toString(), classToSerialize);
+	public <T> T convertTo(Class<T> classToSerialize) {
+
+		try {
+			return jsonMapper.readValue(toString(), classToSerialize);
+		} catch (IOException e) {
+			throw new CoreException("cannot.read.json", e);
+		}
 	}
 
 	public static String writeTo(Object object) {

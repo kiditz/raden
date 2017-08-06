@@ -12,7 +12,8 @@ import org.jboss.forge.roaster.model.source.MethodSource;
 import org.jboss.forge.roaster.model.util.Assert;
 import org.jboss.forge.roaster.model.util.Strings;
 import org.slerp.core.CoreException;
-import org.slerp.core.Dto;
+import org.slerp.core.Domain;
+import org.slerp.core.ConcurentDto;
 import org.slerp.core.business.DefaultBusinessTransaction;
 import org.slerp.utils.EntityUtils;
 
@@ -22,7 +23,7 @@ public class TransactionGenerator implements Generator {
 	private String packageRepo;
 	private File baseDir;
 	private boolean enableValidator;
-	private Dto entity;
+	private ConcurentDto entity;
 
 	private static enum TransactionMode {
 		Add, Edit, Remove
@@ -65,7 +66,7 @@ public class TransactionGenerator implements Generator {
 
 			if (entity.get(fileName) != null) {
 				File entityFile = new File(entity.getString(fileName));
-				Dto parseEntity = EntityUtils.readEntityAsDto(entityFile);
+				ConcurentDto parseEntity = EntityUtils.readEntityAsDto(entityFile);
 				createBusinessTransaction(parseEntity, entityFile);
 				return;
 			}
@@ -75,7 +76,7 @@ public class TransactionGenerator implements Generator {
 		}
 	}
 
-	private void createBusinessTransaction(Dto classDto, File entityFile) throws IOException {
+	private void createBusinessTransaction(ConcurentDto classDto, File entityFile) throws IOException {
 		// System.out.println(classDto);
 		JavaClassSource cls = Roaster.create(JavaClassSource.class);
 		cls.setName(mode.name().concat(classDto.getString("className"))).setPackage(packageTarget).setPublic();
@@ -86,7 +87,7 @@ public class TransactionGenerator implements Generator {
 				.addAnnotation("org.springframework.beans.factory.annotation.Autowired");
 
 		cls.addImport(packageRepo.concat(".").concat(classDto.getString("className")) + "Repository");
-		cls.addImport(Dto.class);
+		cls.addImport(Domain.class);
 		cls.addImport(classDto.getString("packageName").concat(".").concat(classDto.getString("className")));
 		cls.addImport(CoreException.class);
 
@@ -94,12 +95,12 @@ public class TransactionGenerator implements Generator {
 		List<String> notNullValues = new ArrayList<>();
 		List<String> numberValues = new ArrayList<>();
 		List<String> emailValues = new ArrayList<>();
-		List<Dto> fields = classDto.getList("fields");
+		List<ConcurentDto> fields = classDto.getList("fields");
 		StringBuilder prepareBody = new StringBuilder();
 		StringBuilder handleBody = new StringBuilder();
 		String uncapClassName = Strings.uncapitalize(classDto.getString("className"));
 		String className = classDto.getString("className");
-		for (Dto field : fields) {
+		for (ConcurentDto field : fields) {
 			String fieldName = field.getString("fieldName");
 			String file = entityFile.getAbsolutePath();
 
@@ -122,12 +123,12 @@ public class TransactionGenerator implements Generator {
 								field.getString("fieldType").length());
 						String repoName = Strings.uncapitalize(simpleField + "Repository");
 						file = file.replace(className, simpleField);
-						Dto referenceDto = EntityUtils.readEntityAsDto(new File(file));
+						ConcurentDto referenceDto = EntityUtils.readEntityAsDto(new File(file));
 						String primaryKeyRef = getPrimaryKeyRef(referenceDto.getList("fields")); //
-						prepareBody.append("Dto " + Strings.uncapitalize(simpleField) + "Dto = " + uncapClassName
-								+ "Dto.getDto(\"" + fieldName + "\");\n");
+						prepareBody.append("Domain " + Strings.uncapitalize(simpleField) + "Domain = " + uncapClassName
+								+ "Domain.getDomain(\"" + fieldName + "\");\n");
 						prepareBody.append(simpleField + " " + fieldName + " = " + Strings.uncapitalize(simpleField)
-								+ "Dto" + ".convertTo(" + simpleField + ".class);\n");
+								+ "Domain" + ".convertTo(" + simpleField + ".class);\n");
 						prepareBody.append(fieldName + " = " + repoName + ".findOne(" + fieldName + ".get"
 								+ Strings.capitalize(primaryKeyRef) + "());");
 						prepareBody.append("if (" + fieldName + " == null){");
@@ -135,7 +136,7 @@ public class TransactionGenerator implements Generator {
 								+ field.getString("fieldType").concat(".notFound") + "\");");
 						prepareBody.append("}");
 						prepareBody
-								.append(uncapClassName + "Dto.put(\"" + fieldName + "\", new Dto(" + fieldName + "));");
+								.append(uncapClassName + "Domain.put(\"" + fieldName + "\", new Domain(" + fieldName + "));");
 
 						cls.addField().setName(repoName).setType(simpleField + "Repository")
 								.addAnnotation("org.springframework.beans.factory.annotation.Autowired");
@@ -166,10 +167,10 @@ public class TransactionGenerator implements Generator {
 								field.getString("fieldType").length());
 						String repoName = Strings.uncapitalize(simpleField + "Repository");
 						file = file.replace(className, simpleField);
-						Dto referenceDto = EntityUtils.readEntityAsDto(new File(file));
+						ConcurentDto referenceDto = EntityUtils.readEntityAsDto(new File(file));
 						String primaryKeyRef = getPrimaryKeyRef(referenceDto.getList("fields")); //
-						String primaryDtoVar = Strings.uncapitalize(simpleField) + "Dto";
-						prepareBody.append("Dto " + primaryDtoVar + " = " + uncapClassName + "Dto.getDto(\"" + fieldName
+						String primaryDtoVar = Strings.uncapitalize(simpleField) + "Domain";
+						prepareBody.append("Domain " + primaryDtoVar + " = " + uncapClassName + "Domain.getDomain(\"" + fieldName
 								+ "\");\n");
 						prepareBody.append(simpleField.concat(" ").concat(fieldName).concat(" = ") + repoName
 								+ ".findOne(" + primaryDtoVar.concat(".getLong(\"" + primaryKeyRef + "\")") + ");");
@@ -178,7 +179,7 @@ public class TransactionGenerator implements Generator {
 								+ field.getString("fieldType").concat(".notFound") + "\");");
 						prepareBody.append("}");
 						prepareBody
-								.append(uncapClassName + "Dto.put(\"" + fieldName + "\", new Dto(" + fieldName + "));");
+								.append(uncapClassName + "Domain.put(\"" + fieldName + "\", new Domain(" + fieldName + "));");
 
 						prepareBody.append("\n");
 
@@ -213,7 +214,7 @@ public class TransactionGenerator implements Generator {
 		if (enableValidator && !(mode == TransactionMode.Add)) {
 			String pkField = getPrimaryKeyRef(fields);
 			prepareBody.append(className.concat(" ").concat(uncapClassName).concat(" = ").concat(uncapClassName)
-					.concat("Repository.findOne(").concat(uncapClassName).concat("Dto.getLong(\"").concat(pkField)
+					.concat("Repository.findOne(").concat(uncapClassName).concat("Domain.getLong(\"").concat(pkField)
 					.concat("\"));"));
 			prepareBody.append("if (" + uncapClassName + " == null) {");
 			prepareBody.append("throw new CoreException(\""
@@ -222,17 +223,17 @@ public class TransactionGenerator implements Generator {
 		}
 
 		// Create handle body
-		handleBody.append("super.handle(" + Strings.uncapitalize(classDto.getString("className")).concat("Dto") + ");");
+		handleBody.append("super.handle(" + Strings.uncapitalize(classDto.getString("className")).concat("Domain") + ");");
 		handleBody.append("try {");
 
-		handleBody.append(className + " " + uncapClassName + " = " + uncapClassName + "Dto.convertTo("
+		handleBody.append(className + " " + uncapClassName + " = " + uncapClassName + "Domain.convertTo("
 				+ classDto.getString("className") + ".class);");
 		if (mode != TransactionMode.Remove) {
 			handleBody.append(uncapClassName + " = " + uncapClassName + "Repository.save(" + uncapClassName + ");");
-			handleBody.append("return new Dto(" + uncapClassName + ");");
+			handleBody.append("return new Domain(" + uncapClassName + ");");
 		} else {
 			handleBody.append(uncapClassName + "Repository.delete(" + uncapClassName + ");");
-			handleBody.append("return new Dto().put(\"success\", true);");
+			handleBody.append("return new Domain().put(\"success\", true);");
 		}
 		handleBody.append("} catch (Exception e) {");
 		handleBody.append("throw new CoreException(e);");
@@ -241,11 +242,11 @@ public class TransactionGenerator implements Generator {
 		// Generate Method
 		MethodSource<JavaClassSource> prepareMethod = cls.addMethod("prepare()").setPublic();
 		prepareMethod.addThrows(Exception.class);
-		prepareMethod.setParameters("Dto " + Strings.uncapitalize(classDto.getString("className")).concat("Dto"))
+		prepareMethod.setParameters("Domain " + Strings.uncapitalize(classDto.getString("className")).concat("Domain"))
 				.addAnnotation(Override.class);
 		prepareMethod.setBody(prepareBody.toString());
-		MethodSource<JavaClassSource> methodHandle = cls.addMethod("handle()").setReturnType(Dto.class).setPublic();
-		methodHandle.setParameters("Dto " + Strings.uncapitalize(classDto.getString("className")).concat("Dto"))
+		MethodSource<JavaClassSource> methodHandle = cls.addMethod("handle()").setReturnType(Domain.class).setPublic();
+		methodHandle.setParameters("Domain " + Strings.uncapitalize(classDto.getString("className")).concat("Domain"))
 				.addAnnotation(Override.class);
 		methodHandle.setBody(handleBody.toString());
 		// Generate Validation
@@ -275,8 +276,8 @@ public class TransactionGenerator implements Generator {
 		System.out.println("Generator successfully created : ".concat(cls.getCanonicalName().concat(".java")));
 	}
 
-	private String getPrimaryKeyRef(List<Dto> fields) {
-		for (Dto field : fields) {
+	private String getPrimaryKeyRef(List<ConcurentDto> fields) {
+		for (ConcurentDto field : fields) {
 			if (field.getBoolean("isPrimaryKey")) {
 				return field.getString("fieldName");
 			}
@@ -284,7 +285,7 @@ public class TransactionGenerator implements Generator {
 		return null;
 	}
 
-	public Dto getEntity() throws IOException {
+	public ConcurentDto getEntity() throws IOException {
 		return entity;
 	}
 

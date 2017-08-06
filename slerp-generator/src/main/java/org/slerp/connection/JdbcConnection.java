@@ -16,7 +16,7 @@ import java.util.Properties;
 import org.jboss.forge.roaster.model.util.Strings;
 import org.slerp.connection.ConnectionUtils.Setting;
 import org.slerp.core.CoreException;
-import org.slerp.core.Dto;
+import org.slerp.core.ConcurentDto;
 import org.slerp.core.utils.StreamUtils;
 import org.slerp.model.JdbcColumn;
 import org.slerp.model.JdbcTable;
@@ -152,7 +152,7 @@ public class JdbcConnection {
 
 			for (JdbcColumn jdbcColumn : columns) {
 				if (jdbcColumn.getColumnName().equals(fkName)) {
-					Dto foreignKey = new Dto();
+					ConcurentDto foreignKey = new ConcurentDto();
 					foreignKey.put("fkColumnName", fkName);
 					foreignKey.put("pkColumnName", pkName);
 					foreignKey.put("pkTableName", pkTableName);
@@ -183,9 +183,9 @@ public class JdbcConnection {
 
 	public static void main(String[] args) {
 		JdbcConnection connection = new JdbcConnection("src/main/resources/slerp.properties");
-		Dto dto = new Dto();
-		dto.put("tables", connection.getTable("category"));
-		System.out.println(dto);
+		ConcurentDto concurentDto = new ConcurentDto();
+		concurentDto.put("tables", connection.getTable("category"));
+		System.out.println(concurentDto);
 	}
 
 	/**

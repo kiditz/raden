@@ -212,7 +212,7 @@ public class EntityGenerator implements Generator {
 				cls.addImport("javax.persistence.TemporalType");
 			} else if (column.getColumnType().equalsIgnoreCase("date")) {
 				field.addAnnotation("javax.persistence.Temporal").setLiteralValue("TemporalType.DATE");
-				pkCls.addImport("javax.persistence.TemporalType");
+				cls.addImport("javax.persistence.TemporalType");
 			} else if (column.getColumnType().equalsIgnoreCase("time")) {
 				field.addAnnotation("javax.persistence.Temporal").setLiteralValue("TemporalType.TIME");
 				cls.addImport("javax.persistence.TemporalType");
@@ -251,9 +251,14 @@ public class EntityGenerator implements Generator {
 						JavaClassSource refCls = Roaster.parse(JavaClassSource.class, referenceFile);
 						String className = packageName.concat(".")
 								.concat(StringConverter.convertCaseSensitive(fkTableName, true));
-						PropertySource<JavaClassSource> fkProperty = refCls.addProperty(
-								"java.util.List<" + className + ">",
-								StringConverter.convertCaseSensitive(fkTableName, false) + "List");
+						String refName = StringConverter.convertCaseSensitive(fkTableName, false) + "List";
+						PropertySource<JavaClassSource> fkPropertyExist = refCls.getProperty(refName);
+						if (fkPropertyExist != null) {
+							refCls.removeProperty(fkPropertyExist);
+						}
+						PropertySource<JavaClassSource> fkProperty = refCls
+								.addProperty("java.util.List<" + className + ">", refName);
+
 						fkProperty.getField().addAnnotation("javax.persistence.OneToMany")
 								.setLiteralValue("cascade", "CascadeType.ALL").setStringValue("mappedBy", fkField);
 						refCls.addImport("javax.persistence.CascadeType");

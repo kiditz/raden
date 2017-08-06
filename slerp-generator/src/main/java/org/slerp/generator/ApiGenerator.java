@@ -14,7 +14,7 @@ import org.jboss.forge.roaster.model.source.JavaClassSource;
 import org.jboss.forge.roaster.model.source.MethodSource;
 import org.jboss.forge.roaster.model.source.ParameterSource;
 import org.jboss.forge.roaster.model.util.Strings;
-import org.slerp.core.Dto;
+import org.slerp.core.ConcurentDto;
 import org.slerp.utils.EntityUtils;
 import org.slerp.utils.JpaParser;
 import org.springframework.util.StringUtils;
@@ -40,7 +40,8 @@ public class ApiGenerator {
 	}
 
 	public void parse() throws IOException {
-		Dto scanService = EntityUtils.readBusiness(new File(srcDir, packageService.replace(".", "/").concat("/")));
+		ConcurentDto scanService = EntityUtils
+				.readBusiness(new File(srcDir, packageService.replace(".", "/").concat("/")));
 		for (Entry<Object, Object> entry : scanService.entrySet()) {
 			JpaParser parser = new JpaParser(new File(entry.getValue().toString()), packageEntity, packageRepository);
 			parser.setUseEntity(true);
@@ -57,9 +58,9 @@ public class ApiGenerator {
 		cls.addAnnotation("org.springframework.web.bind.annotation.RestController");
 		StringBuilder builder = new StringBuilder();
 		StringBuffer getBody = new StringBuffer();
-		getBody.append("Dto " + controllerName.concat("Dto").concat(" = ").concat("new Dto();\n"));
+		getBody.append("Domain " + controllerName.concat("Domain").concat(" = ").concat("new Dto();\n"));
 		for (JpaParser parser : this.getParsers()) {
-			Dto service = parser.getService();
+			ConcurentDto service = parser.getService();
 			String fieldName = StringUtils.uncapitalize(service.getString("className"));
 			String mode = service.getString("mode");
 			if (mode.equals("transaction")) {
@@ -72,7 +73,7 @@ public class ApiGenerator {
 			}
 
 			MethodSource<JavaClassSource> method = cls.addMethod(fieldName.concat("()")).setPublic();
-			method.setReturnType(Dto.class);
+			method.setReturnType(ConcurentDto.class);
 			if (mode.equals("transaction")) {
 				if (fieldName.startsWith("edit")) {
 					method.addAnnotation("org.springframework.web.bind.annotation.PutMapping")
@@ -90,7 +91,7 @@ public class ApiGenerator {
 			} else {
 				method.addAnnotation("org.springframework.web.bind.annotation.GetMapping")
 						.setStringValue("/".concat(fieldName));
-				for (Dto field : parser.getFields()) {
+				for (ConcurentDto field : parser.getFields()) {
 					String simpleType = field.getString("fieldType");
 					simpleType = simpleType.substring(simpleType.lastIndexOf('.') + 1, simpleType.length());
 					ParameterSource<JavaClassSource> param = method.addParameter(simpleType,
@@ -98,11 +99,12 @@ public class ApiGenerator {
 					param.addAnnotation("org.springframework.web.bind.annotation.RequestParam")
 							.setStringValue(field.getString("fieldName"));
 
-					getBody.append(controllerName.concat("Dto")).append(".put(\"").append(field.getString("fieldName"))
-							.append("\", ").append(field.getString("fieldName")).append(");\n");
+					getBody.append(controllerName.concat("Domain")).append(".put(\"")
+							.append(field.getString("fieldName")).append("\", ").append(field.getString("fieldName"))
+							.append(");\n");
 
 				}
-				getBody.append("return ").append(fieldName).append(".handle(").append(controllerName.concat("Dto"))
+				getBody.append("return ").append(fieldName).append(".handle(").append(controllerName.concat("Domain"))
 						.append(");\n");
 				method.setBody(getBody.toString());
 
@@ -125,26 +127,28 @@ public class ApiGenerator {
 		return file;
 	}
 
-	private void writeTransactionParam(MethodSource<JavaClassSource> method, Dto service, Set<Dto> fields) {
+	private void writeTransactionParam(MethodSource<JavaClassSource> method, ConcurentDto service,
+			Set<ConcurentDto> fields) {
 		String paramDto = getSimpleName(service);
-		method.addParameter("Dto", paramDto).addAnnotation("org.springframework.web.bind.annotation.RequestBody");
+		method.addParameter("Domain", paramDto).addAnnotation("org.springframework.web.bind.annotation.RequestBody");
 	}
 
-	private void writeTransactionBody(MethodSource<JavaClassSource> method, Dto service, StringBuilder builder) {
+	private void writeTransactionBody(MethodSource<JavaClassSource> method, ConcurentDto service,
+			StringBuilder builder) {
 		String paramDto = getSimpleName(service);
 		String className = Strings.uncapitalize(service.getString("className"));
-		builder.append("Dto outputDto = ".concat(className).concat(".handle(" + paramDto + ");\n"));
+		builder.append("Domain outputDto = ".concat(className).concat(".handle(" + paramDto + ");\n"));
 		builder.append("return ".concat("outputDto").concat(";"));
 		method.setBody(builder.toString());
 		builder.setLength(0);
 	}
 
-	private String getSimpleName(Dto servieceDto) {
+	private String getSimpleName(ConcurentDto servieceDto) {
 		String paramDto = servieceDto.getString("packageName");
 		int index = paramDto.lastIndexOf('.');
 		if (index == 0)
 			return paramDto;
-		return paramDto.substring(paramDto.lastIndexOf('.') + 1, paramDto.length()).concat("Dto");
+		return paramDto.substring(paramDto.lastIndexOf('.') + 1, paramDto.length()).concat("Domain");
 	}
 
 	public List<JpaParser> getParsers() {
@@ -164,11 +168,11 @@ public class ApiGenerator {
 		Scanner scanner = new Scanner(System.in);
 		for (int i = 0; i < generator.getParsers().size(); i++) {
 			JpaParser parser = generator.getParsers().get(i);
-			
+
 			System.out.println(parser.getService().toString());
 
 		}
-		
+
 		scanner.close();
 		generator.generate();
 	}

@@ -1,7 +1,7 @@
 package org.slerp.core.business;
 
-import org.slerp.core.Dto;
+import org.slerp.core.Domain;
 
 public interface BusinessTransaction extends BusinessLayer{
-	public void prepare(Dto inputDto) throws Throwable;
+	public void prepare(Domain inputDomain) throws Throwable;
 }

@@ -8,9 +8,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface NumberValidation {
-	String[] value() default "org.slerp.core.validation.NumberValidation.@";
+	String[] value() default "required.number.@";
 
 	boolean required() default true;
 
-	String message() default "org.slerp.core.validation.NumberValidation.@";
+	String message() default "required.number.@";
 }

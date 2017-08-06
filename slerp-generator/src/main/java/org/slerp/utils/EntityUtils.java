@@ -8,13 +8,13 @@ import java.util.List;
 import org.jboss.forge.roaster.Roaster;
 import org.jboss.forge.roaster.model.source.FieldSource;
 import org.jboss.forge.roaster.model.source.JavaClassSource;
-import org.slerp.core.Dto;
+import org.slerp.core.ConcurentDto;
 
 public class EntityUtils {
-	static private Dto inputEntity = new Dto();
-	static private Dto inputBusiness = new Dto();
+	static private ConcurentDto inputEntity = new ConcurentDto();
+	static private ConcurentDto inputBusiness = new ConcurentDto();
 
-	public static Dto readEntities(File baseDir) throws IOException {
+	public static ConcurentDto readEntities(File baseDir) throws IOException {
 		File[] listFile = baseDir.listFiles();
 		if (listFile == null || listFile.length == 0)
 			return null;
@@ -35,7 +35,7 @@ public class EntityUtils {
 		return inputEntity;
 	}
 
-	public static Dto readBusiness(File baseDir) throws IOException {
+	public static ConcurentDto readBusiness(File baseDir) throws IOException {
 		File[] listFile = baseDir.listFiles();
 		if (listFile == null || listFile.length == 0)
 			return null;
@@ -81,15 +81,15 @@ public class EntityUtils {
 
 	}
 
-	public static Dto readEntityAsDto(File entityFile) throws IOException {
+	public static ConcurentDto readEntityAsDto(File entityFile) throws IOException {
 		JavaClassSource cls = Roaster.parse(JavaClassSource.class, entityFile);
 		List<FieldSource<JavaClassSource>> fields = cls.getFields();
-		Dto classDto = new Dto();
+		ConcurentDto classDto = new ConcurentDto();
 		classDto.put("className", cls.getName());
 		classDto.put("packageName", cls.getPackage());
-		List<Dto> fieldsDto = new ArrayList<>();
+		List<ConcurentDto> fieldsDto = new ArrayList<>();
 		for (FieldSource<JavaClassSource> field : fields) {
-			Dto fieldDto = new Dto();
+			ConcurentDto fieldDto = new ConcurentDto();
 			fieldDto.put("fieldName", field.getName());
 			fieldDto.put("fieldType", field.getType().getQualifiedName());
 			if (field.hasAnnotation("javax.validation.constraints.NotNull")) {
@@ -132,7 +132,7 @@ public class EntityUtils {
 	}
 
 	public static void main(String[] args) throws IOException {
-		Dto input = EntityUtils
+		ConcurentDto input = EntityUtils
 				.readBusiness(new File("/home/kiditz/apps/framework/slerp-ecommerce-service/src/main/java/"));
 		System.err.println(input.toString());
 		for (Object obj : input.values()) {

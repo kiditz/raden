@@ -8,9 +8,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface EmailValidation {
-	String[] value() default "org.slerp.core.validation.EmailValidation.@";
+	String[] value() default "required.email@";
 
 	boolean required() default true;
 
-	String message() default "org.slerp.core.validation.EmailValidation.@";
+	String message() default "required.email@";
 }

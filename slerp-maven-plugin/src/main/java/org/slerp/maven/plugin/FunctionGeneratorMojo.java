@@ -16,7 +16,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.StringUtils;
 import org.slerp.core.CoreException;
-import org.slerp.core.Dto;
+import org.slerp.core.ConcurentDto;
 import org.slerp.generator.FunctionGenerator;
 import org.slerp.generator.FunctionGenerator.FunctionType;
 import org.slf4j.Logger;
@@ -46,11 +46,11 @@ public class FunctionGeneratorMojo extends AbstractMojo {
 		if (!cacheDir.isDirectory())
 			cacheDir.mkdirs();
 		File cacheFile = new File(cacheDir, "generator.cache");
-		Dto cacheDto = null;
+		ConcurentDto cacheDto = null;
 		try {
-			cacheDto = new Dto(readString(cacheFile));
+			cacheDto = new ConcurentDto(readString(cacheFile));
 		} catch (Exception e) {
-			cacheDto = new Dto();
+			cacheDto = new ConcurentDto();
 		}
 		String cacheTargetPackage = cacheDto.getString("packageService");
 		String cacheEnPackage = cacheDto.getString("packageEntity");
@@ -126,7 +126,7 @@ public class FunctionGeneratorMojo extends AbstractMojo {
 		generator.type = type;
 		
 		List<String> params = FunctionGenerator.getParamsByQuery(query);
-		Dto paramDto = new Dto();
+		ConcurentDto paramDto = new ConcurentDto();
 		for (String param : params) {
 			System.out.print("Data Type for " + param + " : ");
 			String dataType = scanner.next();

@@ -8,9 +8,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface NotBlankValidation {
-	String[] value() default "org.slerp.core.validation.NotBlankValidation.@";
+	String[] value() default "required.value.@";
 
 	boolean required() default true;
 
-	String message() default "org.slerp.core.validation.NotBlankValidation.@";
+	String message() default "required.value.@";
 }

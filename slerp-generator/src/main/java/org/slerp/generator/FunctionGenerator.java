@@ -15,8 +15,9 @@ import org.jboss.forge.roaster.model.source.JavaClassSource;
 import org.jboss.forge.roaster.model.source.JavaInterfaceSource;
 import org.jboss.forge.roaster.model.source.MethodSource;
 import org.jboss.forge.roaster.model.util.Strings;
+import org.slerp.core.ConcurentDto;
 import org.slerp.core.CoreException;
-import org.slerp.core.Dto;
+import org.slerp.core.Domain;
 import org.slerp.core.business.DefaultBusinessFunction;
 import org.slerp.utils.EntityUtils;
 import org.slerp.utils.StringConverter;
@@ -27,7 +28,7 @@ public class FunctionGenerator implements Generator {
 	public String packageTarget;
 	public String srcDir;
 	private String methodName;
-	public Dto params = new Dto();
+	public ConcurentDto params = new ConcurentDto();
 	private String query = "";
 	public FunctionType type;
 
@@ -122,10 +123,10 @@ public class FunctionGenerator implements Generator {
 					.setStringArrayValue(stringValidationValues.toArray(new String[] {}));
 			MethodSource<JavaClassSource> clsMethod = cls.addMethod().setName("handle");
 			clsMethod.setPublic();
-			clsMethod.setReturnType(Dto.class);
-			String methodParam = Strings.uncapitalize(getReturnByQuery(query)).concat("Dto");
-			clsMethod.addParameter("Dto", methodParam);
-			cls.addImport(Dto.class);
+			clsMethod.setReturnType(Domain.class);
+			String methodParam = Strings.uncapitalize(getReturnByQuery(query)).concat("Domain");
+			clsMethod.addParameter("Domain", methodParam);
+			cls.addImport(Domain.class);
 			StringBuffer buffer = new StringBuffer();
 			String repoName = Strings.uncapitalize(StringConverter.getFilename(repositoryFile));
 			cls.addField().setName(repoName)
@@ -138,31 +139,35 @@ public class FunctionGenerator implements Generator {
 						buffer.append("List".concat("<").concat(className).concat(">")).append(" ")
 								.append(var.concat("List"));
 						buffer.append(" = ").append(repoName.concat(".").concat(methodName));
-						buffer.append("(").append(var.concat("Dto").concat(".get").concat(entry.getValue().toString())
-								.concat("(\"").concat(entry.getKey().toString()).concat("\")")).append(");\n");
+						buffer.append("(")
+								.append(var.concat("Domain").concat(".get").concat(entry.getValue().toString())
+										.concat("(\"").concat(entry.getKey().toString()).concat("\")"))
+								.append(");\n");
 						buffer.append(
-								"return new Dto().put(\"" + var.concat("List") + "\", " + var.concat("List") + ");");
+								"return new Domain().put(\"" + var.concat("List") + "\", " + var.concat("List") + ");");
 						cls.addImport(List.class);
 					} else if (type == FunctionType.SINGLE) {
 
 						buffer.append(className).append(" ").append(var);
 						buffer.append(" = ").append(repoName.concat(".").concat(methodName));
-						buffer.append("(").append(var.concat("Dto").concat(".get").concat(entry.getValue().toString())
-								.concat("(\"").concat(entry.getKey().toString()).concat("\")")).append(");\n");
-						buffer.append("return new Dto().put(\"" + var + "\", " + var + ");");
+						buffer.append("(")
+								.append(var.concat("Domain").concat(".get").concat(entry.getValue().toString())
+										.concat("(\"").concat(entry.getKey().toString()).concat("\")"))
+								.append(");\n");
+						buffer.append("return new Domain().put(\"" + var + "\", " + var + ");");
 					} else if (type == FunctionType.PAGE) {
-						buffer.append("int page = " + var.concat("Dto") + ".getInt(\"page\");");
-						buffer.append("int size = " + var.concat("Dto") + ".getInt(\"size\");");
+						buffer.append("int page = " + var.concat("Domain") + ".getInt(\"page\");");
+						buffer.append("int size = " + var.concat("Domain") + ".getInt(\"size\");");
 						buffer.append("Page".concat("<").concat(className).concat(">")).append(" ")
 								.append(var.concat("Page"));
 						buffer.append(" = ").append(repoName.concat(".").concat(methodName));
 						buffer.append("(")
-								.append(var.concat("Dto").concat(".get").concat(entry.getValue().toString())
+								.append(var.concat("Domain").concat(".get").concat(entry.getValue().toString())
 										.concat("(\"").concat(entry.getKey().toString()).concat("\")").concat(", ")
 										.concat("new PageRequest(page, size)"))
 								.append(");\n");
 						buffer.append(
-								"return new Dto().put(\"" + var.concat("Page") + "\", " + var.concat("Page") + ");");
+								"return new Domain().put(\"" + var.concat("Page") + "\", " + var.concat("Page") + ");");
 						cls.addImport("org.springframework.data.domain.Page");
 						cls.addImport("org.springframework.data.domain.PageRequest");
 						method.addParameter("Pageable", "pageable");
@@ -175,20 +180,20 @@ public class FunctionGenerator implements Generator {
 					buffer.append("List".concat("<").concat(className).concat(">")).append(" ")
 							.append(var.concat("List"));
 					buffer.append(" = ").append(repoName.concat(".").concat(methodName)).append("();\n");
-					buffer.append("return new Dto(" + var.concat("List") + ");");
+					buffer.append("return new Domain(" + var.concat("List") + ");");
 					cls.addImport(List.class);
 				} else if (type == FunctionType.SINGLE) {
 					buffer.append(className).append(" ").append(var);
 					buffer.append(" = ").append(repoName.concat(".").concat(methodName)).append("();\n");
-					buffer.append("return new Dto(" + var + ");");
+					buffer.append("return new Domain(" + var + ");");
 				} else {
-					buffer.append("int page = " + var.concat("Dto") + ".getInt(\"page\");");
-					buffer.append("int size = " + var.concat("Dto") + ".getInt(\"size\");");
+					buffer.append("int page = " + var.concat("Domain") + ".getInt(\"page\");");
+					buffer.append("int size = " + var.concat("Domain") + ".getInt(\"size\");");
 					buffer.append("Page".concat("<").concat(className).concat(">")).append(" ")
 							.append(var.concat("Page"));
 					buffer.append(" = ").append(repoName.concat(".").concat(methodName))
 							.append("(new PageRequest(page, size));\n");
-					buffer.append("return new Dto(" + var.concat("Page") + ");");
+					buffer.append("return new Domain(" + var.concat("Page") + ");");
 					cls.addImport("org.springframework.data.domain.Page");
 					cls.addImport("org.springframework.data.domain.PageRequest");
 				}
@@ -213,7 +218,7 @@ public class FunctionGenerator implements Generator {
 		}
 	}
 
-	public Dto getEntity() throws IOException {
+	public ConcurentDto getEntity() throws IOException {
 		return EntityUtils.readEntities(new File(srcDir));
 	}
 
@@ -250,7 +255,7 @@ public class FunctionGenerator implements Generator {
 		String query = "SELECT p FROM Category p WHERE p.categoryName = :categoryName AND p.categoryId = :categoryId";
 		generator.type = FunctionType.PAGE;
 		List<String> params = FunctionGenerator.getParamsByQuery(query);
-		Dto paramDto = new Dto();
+		ConcurentDto paramDto = new ConcurentDto();
 		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(System.in);
 		for (String param : params) {

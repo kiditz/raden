@@ -1,6 +1,6 @@
 package org.slerp.core.validation;
 
-import org.slerp.core.Dto;
+import org.slerp.core.Domain;
 import org.slerp.core.business.DefaultBusinessFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,19 +10,19 @@ public class TestValidation {
 
 	public void testApp() {
 		SuccessTest validation = new SuccessTest();
-		Dto inputDto = new Dto();
-		inputDto.put("long", Long.MAX_VALUE);
-		inputDto.put("double", Double.MAX_VALUE);
-		inputDto.put("float", Float.MAX_VALUE);
-		inputDto.put("int", Integer.MAX_VALUE);
-		inputDto.put("short", Short.MAX_VALUE);
-		inputDto.put("string", "test");
-		inputDto.put("empty", "success");
-		inputDto.put("email", "kiditzbastara@gmail.com");
-		inputDto.put("number", 1l);
-		inputDto.put("phone", "087788044374");
-		log.info("Input {}", inputDto);
-		validation.handle(inputDto);
+		Domain inputDomain = new Domain();
+		inputDomain.put("long", Long.MAX_VALUE);
+		inputDomain.put("double", Double.MAX_VALUE);
+		inputDomain.put("float", Float.MAX_VALUE);
+		inputDomain.put("int", Integer.MAX_VALUE);
+		inputDomain.put("short", Short.MAX_VALUE);
+		inputDomain.put("string", "test");
+		inputDomain.put("empty", "success");
+		inputDomain.put("email", "kiditzbastara@gmail.com");
+		inputDomain.put("number", 1l);
+		inputDomain.put("phone", "087788044374");
+		log.info("Input {}", inputDomain);
+		validation.handle(inputDomain);
 	}
 
 	@NotBlankValidation({ "string", "empty", "email" })
@@ -30,8 +30,8 @@ public class TestValidation {
 	@EmailValidation("email")
 	public static class SuccessTest extends DefaultBusinessFunction {
 
-		public Dto handle(Dto inputDto) {
-			return super.handle(inputDto);
+		public Domain handle(Domain inputDomain) {
+			return super.handle(inputDomain);
 		}
 	}
 }
