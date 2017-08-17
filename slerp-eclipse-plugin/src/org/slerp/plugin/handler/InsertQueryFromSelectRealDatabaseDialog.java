@@ -149,7 +149,7 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 			builder.append("INSERT INTO ").append(meta.getTableName(1));
 			builder.append(" (");
 			builder.append(meta.getColumnName(1));
-			int index = 1;
+			int index = 2;
 			for (int i = 1; i <= columnCount; i++) {
 				String columnName = meta.getColumnName(i);
 				builder.append(", ").append(meta.getColumnName(index++));
@@ -172,9 +172,13 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 				builder.append("\n(");
 				if (meta.getColumnTypeName(1).equalsIgnoreCase("varchar")
 						|| meta.getColumnTypeName(1).equalsIgnoreCase("text")
-						|| meta.getColumnTypeName(1).equalsIgnoreCase("bpchar")) {
+						|| meta.getColumnTypeName(1).equalsIgnoreCase("bpchar")
+						|| meta.getColumnTypeName(1).equalsIgnoreCase("timestamp")
+						|| meta.getColumnTypeName(1).equalsIgnoreCase("timestamptz")
+						|| meta.getColumnTypeName(1).equalsIgnoreCase("bytea")
+						|| meta.getColumnTypeName(1).equalsIgnoreCase("date")) {
 					builder.append("'").append(rs.getString(1)).append("'");
-				}else{
+				} else {
 					builder.append(rs.getString(1));
 				}
 
@@ -182,15 +186,21 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 
 					dto.put(meta.getColumnName(i), rs.getString(i));
 				}
-
 				for (int i = 2; i <= columnCount; i++) {
-
 					builder.append(", ");
-					if (meta.getColumnTypeName(i).equalsIgnoreCase("varchar")
-							|| meta.getColumnTypeName(i).equalsIgnoreCase("text")
-							|| meta.getColumnTypeName(i).equalsIgnoreCase("bpchar")) {
-						builder.append("'").append(rs.getString(i)).append("'");
-					}else{
+					if (meta.getColumnTypeName(1).equalsIgnoreCase("varchar")
+							|| meta.getColumnTypeName(1).equalsIgnoreCase("text")
+							|| meta.getColumnTypeName(1).equalsIgnoreCase("bpchar")
+							|| meta.getColumnTypeName(1).equalsIgnoreCase("timestamp")
+							|| meta.getColumnTypeName(1).equalsIgnoreCase("timestamptz")
+							|| meta.getColumnTypeName(1).equalsIgnoreCase("bytea")
+							|| meta.getColumnTypeName(1).equalsIgnoreCase("date")) {
+						if (rs.getString(i) != null) {
+							builder.append("'").append(rs.getString(i)).append("'");
+						} else {
+							builder.append(rs.getString(i));
+						}
+					} else {
 						builder.append(rs.getString(i));
 					}
 				}
@@ -264,4 +274,5 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 	public void setOutputFile(IFile outputFile) {
 		this.outputFile = outputFile;
 	}
+
 }

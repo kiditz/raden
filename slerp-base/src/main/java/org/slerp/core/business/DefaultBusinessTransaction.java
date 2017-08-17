@@ -9,14 +9,15 @@ public abstract class DefaultBusinessTransaction implements BusinessTransaction 
 	@Override
 	public abstract void prepare(Domain inputDomain) throws Exception;
 
+	@Override
 	public Domain handle(Domain inputDomain) {
 		try {
 			ValidatorAnnotationHandler.validate(inputDomain, getClass());
-			this.prepare(inputDomain);			
+			this.prepare(inputDomain);
 		} catch (Throwable e) {
 			throw new CoreException(e);
 		}
-		return null;
+		return inputDomain;
 	}
 
 }
