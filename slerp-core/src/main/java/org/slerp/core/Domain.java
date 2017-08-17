@@ -1,33 +1,34 @@
 package org.slerp.core;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 public class Domain implements Map<Object, Object> {
 	// Use Concurrent HashMap for thread safe
 	private Map<Object, Object> map = new LinkedHashMap<Object, Object>();
-	private static final ObjectMapper jsonMapper = new ObjectMapper();
+	private static final Gson gsonMapper = new GsonBuilder().setPrettyPrinting().serializeNulls()
+			.setDateFormat("yyyy-MM-dd").create();
 	static {
-		jsonMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-		jsonMapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
-		jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		jsonMapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
-		jsonMapper.configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, false);
+//		gsonMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+//		gsonMapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
+//		gsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+//		gsonMapper.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false);
+//		gsonMapper.configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, false);
 	}
 
 	public Domain() {
@@ -43,15 +44,7 @@ public class Domain implements Map<Object, Object> {
 
 	@SuppressWarnings("unchecked")
 	public Domain(String other) {
-		try {
-			this.map = (Map<Object, Object>) jsonMapper.readValue(other, HashMap.class);
-		} catch (JsonParseException e) {
-			throw new CoreException("failed.to.parse.json", e);
-		} catch (JsonMappingException e) {
-			throw new CoreException("failed.to.mapping.json", e);
-		} catch (IOException e) {
-			throw new CoreException("failed.to.read.json.data", e);
-		}
+		this.map = (Map<Object, Object>) gsonMapper.fromJson(other, HashMap.class);
 	}
 
 	public int size() {
@@ -145,68 +138,49 @@ public class Domain implements Map<Object, Object> {
 		return this.map.entrySet();
 	}
 
-	public List<Domain> getList(String key) {
-		try {
-			String result = jsonMapper.writeValueAsString(this.map.get(key));
-			List<Domain> dtoList = jsonMapper.readValue(result, new TypeReference<List<Domain>>() {
-			});
-			return dtoList;
-		} catch (JsonProcessingException e) {
-			throw new CoreException("the.value.should.be.json.list." + key, e);
-		} catch (IOException e) {
-			throw new CoreException("failed.to.read.json.data", e);
-		}
+	public List<?> getList(String key) {
+		String result = gsonMapper.toJson(this.map.get(key));
+		List<?> dtoList = gsonMapper.fromJson(result, new TypeToken<ArrayList<?>>(){}.getType());
+		return dtoList;
 	}
 
-	public Set<Domain> getSet(String key) {
-		try {
-			String result = jsonMapper.writeValueAsString(this.map.get(key));
-			Set<Domain> dtoList = jsonMapper.readValue(result, new TypeReference<Set<Domain>>() {
-			});
-			return dtoList;
-		} catch (JsonProcessingException e) {
-			throw new CoreException("the.value.should.be.json.set." + key, e);
-		} catch (IOException e) {
-			throw new CoreException("failed.to.read.json.data", e);
-		}
+	public Set<?> getSet(String key) {
+		String result = gsonMapper.toJson(this.map.get(key));
+		Set<?> dtoList = gsonMapper.fromJson(result, new TypeToken<HashSet<?>>(){}.getType());
+		return dtoList;
 	}
 
 	public Domain getDomain(String key) {
-		try {
-			String result = jsonMapper.writeValueAsString(this.map.get(key));
-			Domain dto = jsonMapper.readValue(result.getBytes(), Domain.class);
-			return dto;
-		} catch (JsonProcessingException e) {
-			throw new CoreException("the.value.should.be.json.object." + key, e);
-		} catch (IOException e) {
-			throw new CoreException("failed.to.read.json.data", e);
-		}
+		String result = gsonMapper.toJson(this.map.get(key));
+		Domain dto = gsonMapper.fromJson(result, Domain.class);
+		return dto;
 	}
 
 	public <T> T convertTo(Class<T> classToSerialize) {
-		try {
-			return jsonMapper.readValue(toString(), classToSerialize);
-		} catch (IOException e) {
-			throw new CoreException("failed.to.convert.object.from.json", e);
-		}
+		return gsonMapper.fromJson(toString(), classToSerialize);
 	}
 
 	public static String writeTo(Object object) {
+		String result = gsonMapper.toJson(object);
+		return result;
+	}
+
+	public void writeTo(File resultFile) {
+		
+		FileWriter w;
 		try {
-			String result = jsonMapper.writeValueAsString(object);
-			return result;
-		} catch (JsonProcessingException e) {
-			throw new CoreException(e);
+			w = new FileWriter(resultFile);
+			w.write(gsonMapper.toJson(this.map));
+			w.close();
+		} catch (IOException e) {
+			
 		}
+		
 	}
 
 	public String toString() {
-		try {
-			String result = jsonMapper.writeValueAsString(this.map);
-			return result;
-		} catch (JsonProcessingException e) {
-			throw new CoreException(e);
-		}
+		String result = gsonMapper.toJson(this.map);
+		return result;
 	}
 
 }
