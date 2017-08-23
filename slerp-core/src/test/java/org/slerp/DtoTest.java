@@ -1,7 +1,6 @@
 package org.slerp;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.slerp.core.Domain;
@@ -90,14 +89,7 @@ public class DtoTest extends TestCase {
 		domain.put("value", null);
 		assertEquals(null, domain.get("value"));
 	}
-	public void testGetList()  {
-		Domain domain = new Domain();
-		domain.put("list", Arrays.asList(1, 2, 3, 4, 5));
-		@SuppressWarnings("unchecked")
-		List<String> list = (List<String>) domain.getList("list");
-		System.err.println(list);
-		
-	}
+	
 	static class User {
 		private String username;
 		private String hashedPassword;
