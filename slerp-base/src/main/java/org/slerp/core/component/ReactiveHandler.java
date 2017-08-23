@@ -165,7 +165,7 @@ public class ReactiveHandler {
 
 			@Override
 			public Domain handle(Domain inputDomain) {
-				inputDomain.writeTo(new File("output.json"));
+				Domain.writeTo(new File("output.json"));
 				return super.handle(inputDomain);
 			}
 		};

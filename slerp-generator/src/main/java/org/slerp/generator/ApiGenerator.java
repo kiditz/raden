@@ -112,7 +112,6 @@ public class ApiGenerator {
 			method.addAnnotation("org.springframework.web.bind.annotation.ResponseBody");
 
 		}
-		// System.err.println(cls.toString());
 		file = new File(apiDir, packageController.replace(".", "/").concat("/")
 				.concat(Strings.capitalize(controllerName).concat("Controller")).concat(".java"));
 		if (!file.getParentFile().isDirectory())
@@ -121,6 +120,7 @@ public class ApiGenerator {
 		writer.write(cls.toString());
 		writer.close();
 		System.out.println("Generator successfully created " + cls.getCanonicalName().concat(".java"));
+		
 	}
 
 	public File getFile() {

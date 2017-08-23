@@ -244,7 +244,7 @@ public class EntityGenerator implements Generator {
 							fkField);
 					property.getAccessor().addAnnotation(JsonProperty.class);
 					FieldSource<JavaClassSource> field = property.getField();
-					field.addAnnotation("javax.persistence.ManyToOne").setLiteralValue("optional", "false");
+					field.addAnnotation("javax.persistence.ManyToOne");
 					field.addAnnotation("javax.persistence.JoinColumn").setStringValue("name", fkColumnName)
 							.setStringValue("referencedColumnName", pkColumnName);
 					try {
