@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/org.slerp.plugin.feature_1.0.0.RELEASE.jar" id="org.slerp.plugin.feature" version="1.0.0.RELEASE">
+      <category name="Slerp Spring Boot Generator"/>
+   </feature>
+   <category-def name="Slerp Spring Boot Generator" label="Spring Boot Generator"/>
+</site>

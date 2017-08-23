@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="org.slerp.plugin.feature"
+      label="Slerp Spring Boot Generator"
+      version="1.0.1.RELEASE"
+      provider-name="Slerp Dev"
+      plugin="slerp-eclipse-plugin">
+
+   <description url="http://www.example.com/description">
+      [Enter Feature Description here.]
+   </description>
+
+   <copyright url="http://www.example.com/copyright">
+      [Enter Copyright Description here.]
+   </copyright>
+
+   <license url="http://www.example.com/license">
+      [Enter License Description here.]
+   </license>
+
+   <plugin
+         id="slerp-eclipse-plugin"
+         download-size="0"
+         install-size="0"
+         version="1.0.1.RELEASE"
+         unpack="false"/>
+
+</feature>
