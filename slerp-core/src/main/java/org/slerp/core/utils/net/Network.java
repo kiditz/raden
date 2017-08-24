@@ -31,6 +31,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.slerp.core.CoreException;
+import org.slerp.core.Domain;
 import org.slerp.core.utils.Net;
 import org.slerp.core.utils.Net.HttpMethods;
 import org.slerp.core.utils.Net.HttpRequest;
@@ -110,6 +111,11 @@ public class Network {
 				return connection.getErrorStream();
 			}
 		}
+
+		@Override
+		public Domain getResultAsDomain() {
+			return new Domain(getResultAsString());
+		}
 	}
 
 	private final ExecutorService executorService;
@@ -123,8 +129,8 @@ public class Network {
 		listeners = new HashMap<HttpRequest, HttpResponseListener>();
 		lock = new ReentrantLock();
 	}
-
-	public void sendHttpRequest(final HttpRequest httpRequest, final HttpResponseListener httpResponseListener) {
+	
+	public void send(final HttpRequest httpRequest, final HttpResponseListener httpResponseListener) {
 		if (httpRequest.getUrl() == null) {
 			httpResponseListener.failed(new CoreException("can't process a HTTP request without URL set"));
 			return;
@@ -243,7 +249,7 @@ public class Network {
 		}
 	}
 
-	public void cancelHttpRequest(HttpRequest httpRequest) {
+	public void cancel(HttpRequest httpRequest) {
 		try {
 			lock.lock();
 			HttpResponseListener httpResponseListener = listeners.get(httpRequest);
@@ -260,8 +266,7 @@ public class Network {
 		}
 	}
 
-	public static void sendRequest(HttpRequest request, HttpResponseListener listener) {
-		new Network().sendHttpRequest(request, listener);
-	}
+	static final public Network instances = new Network();
+
 
 }

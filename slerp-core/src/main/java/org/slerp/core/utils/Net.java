@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slerp.core.Domain;
 import org.slerp.core.utils.net.HttpRequestHeader;
 import org.slerp.core.utils.net.HttpResponseHeader;
 import org.slerp.core.utils.net.HttpStatus;
@@ -28,6 +29,7 @@ import org.slerp.core.utils.net.HttpStatus;
  * @author arielsan
  * @author kiditz
  */
+
 public interface Net {
 
 	/**
@@ -60,6 +62,8 @@ public interface Net {
 		 *         {@link HttpRequest#setTimeOut(int)}
 		 */
 		String getResultAsString();
+
+		Domain getResultAsDomain();
 
 		/**
 		 * Returns the data of the HTTP response as an {@link InputStream}.
@@ -301,6 +305,55 @@ public interface Net {
 			return followRedirects;
 		}
 
+		public HttpRequest post(String url) {
+			setUrl(url);
+			setMethod(HttpMethods.POST);
+			return this;
+		}
+
+		public HttpRequest get(String url) {
+			setUrl(url);
+			setMethod(HttpMethods.GET);
+			return this;
+		}
+
+		public HttpRequest put(String url) {
+			setUrl(url);
+			setMethod(HttpMethods.PUT);
+			return this;
+		}
+
+		public HttpRequest delete(String url) {
+			setUrl(url);
+			setMethod(HttpMethods.DELETE);
+			return this;
+		}
+
+		public HttpRequest contentType(String value) {
+			this.setHeader(HttpRequestHeader.ContentType, value);
+			return this;
+		}
+
+		public HttpRequest accept(String value) {
+			this.setHeader(HttpRequestHeader.Accept, value);
+			return this;
+		}
+
+		public HttpRequest authorization(String value) {
+			this.setHeader(HttpRequestHeader.Authorization, value);
+			return this;
+		}
+
+		public HttpRequest content(String value) {
+			this.setContent(value);
+			return this;
+		}
+
+		public HttpRequest content(Domain value) {
+			this.setContent(value.toString());
+			return this;
+		}
+
 		public void reset() {
 			httpMethod = null;
 			url = null;
@@ -321,6 +374,7 @@ public interface Net {
 	 * ready to be processed, register it with
 	 * {@link Net#sendHttpRequest(HttpRequest, HttpResponseListener)}.
 	 */
+	@FunctionalInterface
 	public static interface HttpResponseListener {
 
 		/**
@@ -348,6 +402,7 @@ public interface Net {
 		 * @param httpResponse
 		 *            The {@link HttpResponse} with the HTTP response values.
 		 */
+		
 		void handleHttpResponse(HttpResponse httpResponse);
 
 		/**
@@ -359,9 +414,23 @@ public interface Net {
 		 *            If the HTTP request failed because an Exception, t
 		 *            encapsulates it to give more information.
 		 */
-		void failed(Throwable t);
+		default void failed(Throwable t){};
 
-		void cancelled();
+		default void cancelled() {};
+	}
+
+	public static abstract class HttpResponseAdapter implements HttpResponseListener {
+		@Override
+		public void failed(Throwable t) {
+		}
+
+		@Override
+		public void handleHttpResponse(HttpResponse httpResponse) {
+		}
+
+		@Override
+		public void cancelled() {
+		}
 	}
 
 	/**
