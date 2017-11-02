@@ -35,19 +35,17 @@ public class EntityUtils {
 		return inputEntity;
 	}
 
-	public static ConcurentDto readBusiness(File baseDir) throws IOException {
-		File[] listFile = baseDir.listFiles();
+	public static ConcurentDto readBusiness(File baseDir) throws IOException {		
+		File[] listFile = baseDir.listFiles();		
 		if (listFile == null || listFile.length == 0)
 			return null;
 		for (File file : listFile) {
-			if (file.isDirectory()) {
+			if (file.isDirectory()) {				
 				readBusiness(file);
 			} else {
 				if (StringConverter.getExtension(file).equals("java")) {
 					if (isBo(file)) {
-						// System.err.println("Path Entity Utils " +
-						// file.getAbsolutePath());
-
+						//System.err.println(file);
 						inputBusiness.put(StringConverter.getFilename(file), file.getAbsolutePath());
 					}
 				}
@@ -133,7 +131,7 @@ public class EntityUtils {
 
 	public static void main(String[] args) throws IOException {
 		ConcurentDto input = EntityUtils
-				.readBusiness(new File("/home/kiditz/apps/framework/slerp-ecommerce-service/src/main/java/"));
+				.readBusiness(new File("/home/kiditz/slerpio/slerp-io-service/src/main/java/"));
 		System.err.println(input.toString());
 		for (Object obj : input.values()) {
 			System.err.println(obj);

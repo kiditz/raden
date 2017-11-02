@@ -65,17 +65,19 @@ public class EntityGenerator implements Generator {
 			writer.write(source.toString());
 			writer.close();
 			System.out.println("Generated Successfully Created : " + source.getCanonicalName().concat(".java"));
-			JavaInterfaceSource repository = generateRepository(table);
 			File srcRepo = new File(srcDir, packageRepoName.replace(".", "/").concat("/"));
-			if (!srcRepo.isDirectory())
-				srcRepo.mkdirs();
-
 			fileToWrite = new File(srcRepo,
 					StringConverter.convertCaseSensitive(table.getTableName(), true) + "Repository".concat(".java"));
-			writer = new FileWriter(fileToWrite);
-			writer.write(repository.toString());
-			writer.close();
-			System.out.println("Generated Successfully Created : " + repository.getCanonicalName().concat(".java"));
+			if (!fileToWrite.exists()) {
+				JavaInterfaceSource repository = generateRepository(table);
+				if (!srcRepo.isDirectory())
+					srcRepo.mkdirs();
+				writer = new FileWriter(fileToWrite);
+				writer.write(repository.toString());
+				writer.close();
+				System.out.println("Generated Successfully Created : " + repository.getCanonicalName().concat(".java"));
+			}
+
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -124,6 +126,7 @@ public class EntityGenerator implements Generator {
 					PropertySource<JavaClassSource> propertyPk = pkCls.addProperty(
 							TypeConverter.convert(column.getColumnType()),
 							StringConverter.convertCaseSensitive(column.getColumnName(), false));
+
 					// Add JsonPropertyAnnotation
 					propertyPk.getAccessor().addAnnotation(JsonProperty.class);
 					FieldSource<JavaClassSource> field = propertyPk.getField();
@@ -308,10 +311,10 @@ public class EntityGenerator implements Generator {
 	}
 
 	public static void main(String[] args) {
-		EntityGenerator generator = new EntityGenerator("src/main/resources/slerp.properties",
-				"org.slerp.ecomerce.entity", null, "/home/kiditz/apps/framework/slerp-ecommerce-service/src/main/java");
+		EntityGenerator generator = new EntityGenerator(
+				"/home/kiditz/slerpio/slerp-io-service/src/test/resources/config.properties", "org.slerpio.entity",
+				null, "/home/kiditz/slerpio/slerp-io-service/src/main/java");
+		generator.generate("class_student");
 
-		generator.generate("product");
-		generator.generate("category");
 	}
 }

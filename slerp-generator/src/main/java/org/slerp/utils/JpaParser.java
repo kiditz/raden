@@ -44,7 +44,7 @@ public class JpaParser {
 			throw new CoreException("The Method name should be contins with entity");
 		}
 
-		System.out.println("Repository Path " + buffer.toString());
+		//System.out.println("Repository Path " + buffer.toString());
 		File repositoryFile = new File(buffer.toString());
 		if (!repositoryFile.exists())
 			throw new CoreException("Cannot found repository for business " + cls.getName());

@@ -52,6 +52,7 @@ public class JUnitTestGenerator {
 		primitivType.put("BigDecimal", "java.math.BigDecimal");
 		primitivType.put("Date", "java.util.Date");
 		primitivType.put("String", "java.lang.String");
+		primitivType.put("string", "java.lang.String");
 		primitivType.put("List", "java.util.List");
 
 		numberType.put("int", "java.lang.Integer");
