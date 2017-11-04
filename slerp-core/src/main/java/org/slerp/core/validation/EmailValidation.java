@@ -8,9 +8,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface EmailValidation {
-	String[] value() default "required.email@";
+	String[] value() default "invalid.value.@";
 
 	boolean required() default true;
 
-	String message() default "required.email@";
+	String message() default "invalid.value.@";
 }

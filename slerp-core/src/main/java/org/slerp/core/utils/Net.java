@@ -33,8 +33,8 @@ import org.slerp.core.utils.net.HttpStatus;
 public interface Net {
 
 	/**
-	 * HTTP response interface with methods to get the response data as a
-	 * byte[], a {@link String} or an {@link InputStream}.
+	 * HTTP response interface with methods to get the response data as a byte[], a
+	 * {@link String} or an {@link InputStream}.
 	 */
 	public static interface HttpResponse {
 		/**
@@ -66,13 +66,12 @@ public interface Net {
 		Domain getResultAsDomain();
 
 		/**
-		 * Returns the data of the HTTP response as an {@link InputStream}.
-		 * <b><br>
+		 * Returns the data of the HTTP response as an {@link InputStream}. <b><br>
 		 * Warning:</b> Do not store a reference to this InputStream outside of
-		 * {@link HttpResponseListener#handleHttpResponse(HttpResponse)}. The
-		 * underlying HTTP connection will be closed after that callback
-		 * finishes executing. Reading from the InputStream after it's
-		 * connection has been closed will lead to exception.
+		 * {@link HttpResponseListener#handleHttpResponse(HttpResponse)}. The underlying
+		 * HTTP connection will be closed after that callback finishes executing.
+		 * Reading from the InputStream after it's connection has been closed will lead
+		 * to exception.
 		 * 
 		 * @return An {@link InputStream} with the {@link HttpResponse} data.
 		 */
@@ -85,16 +84,15 @@ public interface Net {
 		HttpStatus getStatus();
 
 		/**
-		 * Returns the value of the header with the given name as a
-		 * {@link String}, or null if the header is not set. See
-		 * {@link HttpResponseHeader}.
+		 * Returns the value of the header with the given name as a {@link String}, or
+		 * null if the header is not set. See {@link HttpResponseHeader}.
 		 */
 		String getHeader(String name);
 
 		/**
-		 * Returns a Map of the headers. The keys are Strings that represent the
-		 * header name. Each values is a List of Strings that represent the
-		 * corresponding header values. See {@link HttpResponseHeader}.
+		 * Returns a Map of the headers. The keys are Strings that represent the header
+		 * name. Each values is a List of Strings that represent the corresponding
+		 * header values. See {@link HttpResponseHeader}.
 		 */
 		Map<String, List<String>> getHeaders();
 	}
@@ -127,8 +125,8 @@ public interface Net {
 	 * multiple times</li>
 	 * <li><strong>timeout:</strong> time spent trying to connect before giving
 	 * up</li>
-	 * <li><strong>content:</strong> A string containing the data to be used
-	 * when processing the HTTP request.</li>
+	 * <li><strong>content:</strong> A string containing the data to be used when
+	 * processing the HTTP request.</li>
 	 * </ul>
 	 * 
 	 * Abstracts the concept of a HTTP Request:
@@ -181,8 +179,7 @@ public interface Net {
 		 * {@link HttpMethods}.
 		 * 
 		 * @param httpMethod
-		 *            This is the HTTP method for the request, see
-		 *            {@link HttpMethods}
+		 *            This is the HTTP method for the request, see {@link HttpMethods}
 		 */
 		public HttpRequest(String httpMethod) {
 			this();
@@ -215,19 +212,18 @@ public interface Net {
 		 * Sets the content to be used in the HTTP request.
 		 * 
 		 * @param content
-		 *            A string encoded in the corresponding Content-Encoding set
-		 *            in the headers, with the data to send with the HTTP
-		 *            request. For example, in case of HTTP GET, the content is
-		 *            used as the query string of the GET while on a HTTP POST
-		 *            it is used to send the POST data.
+		 *            A string encoded in the corresponding Content-Encoding set in the
+		 *            headers, with the data to send with the HTTP request. For example,
+		 *            in case of HTTP GET, the content is used as the query string of
+		 *            the GET while on a HTTP POST it is used to send the POST data.
 		 */
 		public void setContent(String content) {
 			this.content = content;
 		}
 
 		/**
-		 * Sets the content as a stream to be used for a POST for example, to
-		 * transmit custom data.
+		 * Sets the content as a stream to be used for a POST for example, to transmit
+		 * custom data.
 		 * 
 		 * @param contentStream
 		 *            The stream with the content data.
@@ -238,14 +234,13 @@ public interface Net {
 		}
 
 		/**
-		 * Sets the time to wait for the HTTP request to be processed, use 0
-		 * block until it is done. The timeout is used for both the timeout when
-		 * establishing TCP connection, and the timeout until the first byte of
-		 * data is received.
+		 * Sets the time to wait for the HTTP request to be processed, use 0 block until
+		 * it is done. The timeout is used for both the timeout when establishing TCP
+		 * connection, and the timeout until the first byte of data is received.
 		 * 
 		 * @param timeOut
-		 *            the number of milliseconds to wait before giving up, 0 or
-		 *            negative to block until the operation is done
+		 *            the number of milliseconds to wait before giving up, 0 or negative
+		 *            to block until the operation is done
 		 */
 		public void setTimeOut(int timeOut) {
 			this.timeOut = timeOut;
@@ -298,8 +293,8 @@ public interface Net {
 		}
 
 		/**
-		 * Returns whether 301 and 302 redirects are followed. By default true.
-		 * Whether to follow redirects.
+		 * Returns whether 301 and 302 redirects are followed. By default true. Whether
+		 * to follow redirects.
 		 */
 		public boolean getFollowRedirects() {
 			return followRedirects;
@@ -370,21 +365,20 @@ public interface Net {
 	}
 
 	/**
-	 * Listener to be able to do custom logic once the {@link HttpResponse} is
-	 * ready to be processed, register it with
+	 * Listener to be able to do custom logic once the {@link HttpResponse} is ready
+	 * to be processed, register it with
 	 * {@link Net#sendHttpRequest(HttpRequest, HttpResponseListener)}.
 	 */
-	@FunctionalInterface
+
 	public static interface HttpResponseListener {
 
 		/**
 		 * Called when the {@link HttpRequest} has been processed and there is a
-		 * {@link HttpResponse} ready. Passing data to the rendering thread
-		 * should be done using
-		 * {@link Application#postRunnable(java.lang.Runnable runnable)}
-		 * {@link HttpResponse} contains the {@link HttpStatus} and should be
-		 * used to determine if the request was successful or not (see more info
-		 * at {@link HttpStatus#getStatusCode()}). For example:
+		 * {@link HttpResponse} ready. Passing data to the rendering thread should be
+		 * done using {@link Application#postRunnable(java.lang.Runnable runnable)}
+		 * {@link HttpResponse} contains the {@link HttpStatus} and should be used to
+		 * determine if the request was successful or not (see more info at
+		 * {@link HttpStatus#getStatusCode()}). For example:
 		 * 
 		 * <pre>
 		 *  HttpResponseListener listener = new HttpResponseListener() {
@@ -402,21 +396,20 @@ public interface Net {
 		 * @param httpResponse
 		 *            The {@link HttpResponse} with the HTTP response values.
 		 */
-		
+
 		void handleHttpResponse(HttpResponse httpResponse);
 
 		/**
-		 * Called if the {@link HttpRequest} failed because an exception when
-		 * processing the HTTP request, could be a timeout any other reason (not
-		 * an HTTP error).
+		 * Called if the {@link HttpRequest} failed because an exception when processing
+		 * the HTTP request, could be a timeout any other reason (not an HTTP error).
 		 * 
 		 * @param t
-		 *            If the HTTP request failed because an Exception, t
-		 *            encapsulates it to give more information.
+		 *            If the HTTP request failed because an Exception, t encapsulates it
+		 *            to give more information.
 		 */
-		default void failed(Throwable t){};
+		void failed(Throwable t);
 
-		default void cancelled() {};
+		void cancelled();
 	}
 
 	public static abstract class HttpResponseAdapter implements HttpResponseListener {
@@ -440,9 +433,9 @@ public interface Net {
 	 * @param httpRequest
 	 *            The {@link HttpRequest} to be performed.
 	 * @param httpResponseListener
-	 *            The {@link HttpResponseListener} to call once the HTTP
-	 *            response is ready to be processed. Could be null, in that case
-	 *            no listener is called.
+	 *            The {@link HttpResponseListener} to call once the HTTP response is
+	 *            ready to be processed. Could be null, in that case no listener is
+	 *            called.
 	 */
 	public void sendHttpRequest(HttpRequest httpRequest, HttpResponseListener httpResponseListener);
 
