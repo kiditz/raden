@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.ide.IDE;
@@ -51,6 +52,14 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 	private String resultQuery;
 	IFile outputFile;
 	IWorkbenchWindow window;
+	protected Shell shell;
+
+	public InsertQueryFromSelectRealDatabaseDialog(Shell shell, File settingFile) {
+		super(shell);
+		if (settingFile == null)
+			throw new CoreException("Setting file is required");
+		this.connection = new JdbcConnection(settingFile.getAbsolutePath());
+	}
 
 	public InsertQueryFromSelectRealDatabaseDialog(IWorkbenchWindow window, File settingFile) {
 		super(window.getShell());
@@ -149,14 +158,15 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 			builder.setLength(0);
 			builder.append("INSERT INTO ").append(meta.getTableName(1));
 			builder.append(" (");
-			builder.append(meta.getColumnName(1));			
-			int index = 2;
+			builder.append(meta.getColumnName(1));
+			for (int i = 2; i <= columnCount; i++) {
+				builder.append(", ");
+				builder.append(meta.getColumnName(i));
+			}
+
 			for (int i = 1; i <= columnCount; i++) {
 				String columnName = meta.getColumnName(i);
-				builder.append(", ").append(meta.getColumnName(index++));
-				if(index > columnCount)
-					index = 0;
-				index++;
+
 				TableViewerColumn column = createTableViewerColumn(columnName, 100, i - 1);
 				final String tableName = meta.getColumnName(i);
 				column.setLabelProvider(new ColumnLabelProvider() {
@@ -164,7 +174,7 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 					public String getText(Object element) {
 						@SuppressWarnings("unchecked")
 						HashMap<String, Object> dto = ((HashMap<String, Object>) element);
-						return dto.get(tableName) != null ? dto.get(tableName).toString() :"null" ;
+						return dto.get(tableName) != null ? dto.get(tableName).toString() : "null";
 					}
 				});
 			}
@@ -173,7 +183,7 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 			List<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
 
 			while (rs.next()) {
-				
+
 				builder.append("\n(");
 				if (meta.getColumnTypeName(1).equalsIgnoreCase("varchar")
 						|| meta.getColumnTypeName(1).equalsIgnoreCase("text")
@@ -188,8 +198,8 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 				}
 				HashMap<String, Object> map = new HashMap<>();
 				for (int i = 1; i <= columnCount; i++) {
-					//System.err.println(rs.getString(i));
-					//System.err.println(meta.getColumnName(i));
+					// System.err.println(rs.getString(i));
+					// System.err.println(meta.getColumnName(i));
 					map.put(meta.getColumnName(i), rs.getString(i));
 				}
 				for (int i = 2; i <= columnCount; i++) {
@@ -266,13 +276,15 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 				return;
 			}
 			try {
-				FileWriter writer = new FileWriter(outputFile.getLocation().toFile(), true);
-				writer.append("\n");
-				writer.append(getInsertQuery());
-				writer.close();
-				if (outputFile != null)
-					outputFile.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
-				IDE.openEditor(window.getActivePage(), outputFile);
+				if (window != null) {
+					FileWriter writer = new FileWriter(outputFile.getLocation().toFile(), true);
+					writer.append("\n");
+					writer.append(getInsertQuery());
+					writer.close();
+					if (outputFile != null)
+						outputFile.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
+					IDE.openEditor(window.getActivePage(), outputFile);
+				}
 			} catch (Exception e) {
 				System.err.println(getInsertQuery());
 				throw new CoreException("Failed to open file ", e);
@@ -284,8 +296,9 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 		this.outputFile = outputFile;
 	}
 
-//	public static void main(String[] args) {
-//		TitleAreaDialog dialog = new InsertQueryFromSelectRealDatabaseDialog(new Shell(), new File("/home/kiditz/slerpio/slerp-io-service/src/test/resources/config.properties"));
-//		dialog.open();
-//	}	
+	public static void main(String[] args) {
+		TitleAreaDialog dialog = new InsertQueryFromSelectRealDatabaseDialog(new Shell(),
+				new File("/home/kiditz/slerpio/slerp-io-service/src/test/resources/config.properties"));
+		dialog.open();
+	}
 }
