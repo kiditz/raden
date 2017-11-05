@@ -249,7 +249,7 @@ public class UnitTestGeneratorPage extends BaseGenerator {
 
 	public IResource getApplicationProperties() {
 		IResource applicationProperties = getProject().getProject()
-				.findMember("src/test/resources/application.properties");
+				.findMember("src/test/resources/config.properties");
 		return applicationProperties;
 	}
 
