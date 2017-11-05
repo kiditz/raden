@@ -107,6 +107,7 @@ public class ApiGeneratorMojo extends AbstractMojo {
 		ApiGenerator generator = new ApiGenerator(apiDir.getAbsolutePath(), srcDir.getAbsolutePath(), packageEntity,
 				packageRepoName, packageService, packageController);
 		try {
+			long startTime = System.currentTimeMillis();
 			generator.parse();
 			System.out.println("----------------------------------------------------------------------");
 			System.out.println("Found Service in project");
@@ -136,6 +137,7 @@ public class ApiGeneratorMojo extends AbstractMojo {
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
+			System.out.println(System.currentTimeMillis() - startTime + "ms");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

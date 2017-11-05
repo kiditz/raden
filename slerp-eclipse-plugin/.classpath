@@ -12,9 +12,9 @@
 	<classpathentry exported="true" kind="lib" path="libs/spring-core-4.3.4.RELEASE.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/spring-test-4.3.4.RELEASE.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/slerp-generator-1.0.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="libs/project-builder.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="/home/kiditz/slerp/slerp-eclipse-plugin/libs/project-builder.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

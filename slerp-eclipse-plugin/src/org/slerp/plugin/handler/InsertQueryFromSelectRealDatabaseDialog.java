@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
@@ -37,7 +38,6 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.ide.IDE;
 import org.slerp.connection.JdbcConnection;
 import org.slerp.core.CoreException;
-import org.slerp.core.Dto;
 import org.slerp.plugin.wizard.FunctionGeneratorPage;
 import org.springframework.util.StringUtils;
 
@@ -146,29 +146,34 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 			ResultSet rs = conn.createStatement().executeQuery(txtQuery.getText());
 			ResultSetMetaData meta = rs.getMetaData();
 			int columnCount = meta.getColumnCount();
+			builder.setLength(0);
 			builder.append("INSERT INTO ").append(meta.getTableName(1));
 			builder.append(" (");
-			builder.append(meta.getColumnName(1));
+			builder.append(meta.getColumnName(1));			
 			int index = 2;
 			for (int i = 1; i <= columnCount; i++) {
 				String columnName = meta.getColumnName(i);
 				builder.append(", ").append(meta.getColumnName(index++));
+				if(index > columnCount)
+					index = 0;
+				index++;
 				TableViewerColumn column = createTableViewerColumn(columnName, 100, i - 1);
 				final String tableName = meta.getColumnName(i);
 				column.setLabelProvider(new ColumnLabelProvider() {
 					@Override
 					public String getText(Object element) {
-						Dto dto = ((Dto) element);
-						return dto.getString(tableName);
+						@SuppressWarnings("unchecked")
+						HashMap<String, Object> dto = ((HashMap<String, Object>) element);
+						return dto.get(tableName) != null ? dto.get(tableName).toString() :"null" ;
 					}
 				});
 			}
 			builder.append(") VALUES ");
 
-			List<Dto> list = new ArrayList<Dto>();
+			List<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
 
 			while (rs.next()) {
-				Dto dto = new Dto();
+				
 				builder.append("\n(");
 				if (meta.getColumnTypeName(1).equalsIgnoreCase("varchar")
 						|| meta.getColumnTypeName(1).equalsIgnoreCase("text")
@@ -181,20 +186,21 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 				} else {
 					builder.append(rs.getString(1));
 				}
-
+				HashMap<String, Object> map = new HashMap<>();
 				for (int i = 1; i <= columnCount; i++) {
-
-					dto.put(meta.getColumnName(i), rs.getString(i));
+					//System.err.println(rs.getString(i));
+					//System.err.println(meta.getColumnName(i));
+					map.put(meta.getColumnName(i), rs.getString(i));
 				}
 				for (int i = 2; i <= columnCount; i++) {
 					builder.append(", ");
-					if (meta.getColumnTypeName(1).equalsIgnoreCase("varchar")
-							|| meta.getColumnTypeName(1).equalsIgnoreCase("text")
-							|| meta.getColumnTypeName(1).equalsIgnoreCase("bpchar")
-							|| meta.getColumnTypeName(1).equalsIgnoreCase("timestamp")
-							|| meta.getColumnTypeName(1).equalsIgnoreCase("timestamptz")
-							|| meta.getColumnTypeName(1).equalsIgnoreCase("bytea")
-							|| meta.getColumnTypeName(1).equalsIgnoreCase("date")) {
+					if (meta.getColumnTypeName(i).equalsIgnoreCase("varchar")
+							|| meta.getColumnTypeName(i).equalsIgnoreCase("text")
+							|| meta.getColumnTypeName(i).equalsIgnoreCase("bpchar")
+							|| meta.getColumnTypeName(i).equalsIgnoreCase("timestamp")
+							|| meta.getColumnTypeName(i).equalsIgnoreCase("timestamptz")
+							|| meta.getColumnTypeName(i).equalsIgnoreCase("bytea")
+							|| meta.getColumnTypeName(i).equalsIgnoreCase("date")) {
 						if (rs.getString(i) != null) {
 							builder.append("'").append(rs.getString(i)).append("'");
 						} else {
@@ -205,10 +211,11 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 					}
 				}
 				builder.append("),");
-				list.add(dto);
+				list.add(map);
 			}
 
 			resultQuery = builder.toString().substring(0, builder.toString().length() - 1).concat(";");
+			System.out.println(resultQuery);
 			viewer.setInput(list);
 
 		} catch (
@@ -263,9 +270,11 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 				writer.append("\n");
 				writer.append(getInsertQuery());
 				writer.close();
-				outputFile.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
+				if (outputFile != null)
+					outputFile.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
 				IDE.openEditor(window.getActivePage(), outputFile);
 			} catch (Exception e) {
+				System.err.println(getInsertQuery());
 				throw new CoreException("Failed to open file ", e);
 			}
 		}
@@ -275,4 +284,8 @@ public class InsertQueryFromSelectRealDatabaseDialog extends TitleAreaDialog {
 		this.outputFile = outputFile;
 	}
 
+//	public static void main(String[] args) {
+//		TitleAreaDialog dialog = new InsertQueryFromSelectRealDatabaseDialog(new Shell(), new File("/home/kiditz/slerpio/slerp-io-service/src/test/resources/config.properties"));
+//		dialog.open();
+//	}	
 }

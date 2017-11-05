@@ -126,7 +126,7 @@ public class EntityGeneratorPage extends BaseGenerator {
 					}
 					group.layout();
 				} else {
-					updateStatus("Cannot found application.properties file");
+					updateStatus("Cannot found config.properties file");
 					return;
 				}
 				updateStatus(null);
@@ -142,7 +142,7 @@ public class EntityGeneratorPage extends BaseGenerator {
 						e1.printStackTrace();
 					}
 				} else {
-					updateStatus("Close this and Right click in the application.properties -> Database Setting");
+					updateStatus("Close this and Right click in the config.properties -> Database Setting");
 					return;
 				}
 				updateStatus(null);
@@ -157,7 +157,7 @@ public class EntityGeneratorPage extends BaseGenerator {
 
 	public IResource getApplicationProperties() {
 		IResource applicationProperties = getProject().getProject()
-				.findMember("src/test/resources/application.properties");
+				.findMember("src/test/resources/config.properties");
 		return applicationProperties;
 	}
 }

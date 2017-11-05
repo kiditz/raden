@@ -30,9 +30,8 @@ public class InsertQueryHandler extends AbstractHandler {
 			IFile file = (IFile) structured.getFirstElement();
 
 			try {
-				InsertQueryFromSelectRealDatabaseDialog dialog = new InsertQueryFromSelectRealDatabaseDialog(
-						window, file.getProject().findMember("src/test/resources/application.properties")
-								.getLocation().toFile());
+				InsertQueryFromSelectRealDatabaseDialog dialog = new InsertQueryFromSelectRealDatabaseDialog(window,
+						file.getProject().findMember("src/test/resources/config.properties").getLocation().toFile());
 				dialog.setOutputFile(file);
 				dialog.open();
 				
